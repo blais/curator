@@ -1,0 +1,13 @@
+Description: Static image gallery generator with minimal dependencies
+Official-Homepage: http://furius.ca/curator
+Mirror-Homepage: http://curator.sourceforge.net
+Author: Martin Blais
+Author-Email: blais@furius.ca
+ChangeLog: http://furius.ca/curator/CHANGES
+Announcement: http://freshmeat.net/projects/curator/
+Announcement: http://www.python.org/pypi?%3Aaction=search&name=curator
+Download-Releases: http://sourceforge.net/project/showfiles.php?group_id=31897
+Download-Releases: http://furius.ca/downloads/curator/releases
+Download-Snapshots: http://furius.ca/downloads/curator/snapshots
+Bugs-Reporting: http://sourceforge.net/tracker/?group_id=31897
+License: GNU GPL

@@ -1,0 +1,15 @@
+#!/bin/sh
+#
+# $Id: env 216 2004-09-23 16:48:50Z blais $
+#
+# My environment initialization for this project.  This could or could not be
+# used as an example for your own settings for development.
+
+USERPATH=${USERPATH}:$PROJDIR/bin
+CURATOR_TEMPLATE=$PROJDIR/share/templates/blais
+
+# The following is only used for the master copy of attrfile.
+# Curator users should not need to do this nor install that file.
+PYTHONPATH=$PYTHONPATH:$PROJDIR/lib/python
+
+export CURATOR_TEMPLATE

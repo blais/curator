@@ -1,0 +1,586 @@
+=============
+TODO: curator
+=============
+
+
+
+- support IPTC caption standard instead of the desc file
+
+
+
+- bug: the photos are not in the order that the dirindex shows it
+
+
+
+- don't forget to add EXIF tags
+
+
+- bug: if only --browse is available, curator doesn't pick them up anymore
+  (e.g. use package_pics and try just running curator in the given subdir)
+
+- curator: BIG BUG 'description' and 'title' don't come out in default
+  template!!!
+
+- curator: update man page, answer bugs.
+
+- make sure to test new curator with animated gif, there is a bug::
+
+     It seems that when curator hits an animated gif, it creates a thumbnail
+     for each frame of the gif and then hangs.  Maybe it goes into some
+     infinite loop?  This is the one that I hit:
+
+     http://members.rogers.com/rcrosbie/images/svganimated.gif
+
+- Is it possible to clean up the help output?  It seems the formatting in the
+  code messes up the help output.
+
+
+
+
+
+.. end
+
+
+::
+
+  Greg Baker <ggbaker@cs.sfu.ca>
+
+  I have recently put my gallery into the Subversion version control
+  system.  It leaves .svn directories everywhere; these were mucking up my
+  gallery.
+
+  Anyway, I fiddled the curator code to ignore those (they do have image
+  files, so it wasn't covered by the existing code).  This patch is from
+  Curator 2.1 (Debian package 2.1-0.2):
+
+  697,700c697,703
+  <                 subdir = Dir( af, self, root )
+  <                 # ignore directories which do not have images under them.
+  <                 if subdir.hasImages():
+  <                     self._subdirs.append( subdir )
+  ---
+  >                 if string.find(paf, ".svn")==-1:
+  >                     subdir = Dir( af, self, root )
+  >                     # ignore directories which do not have images under them.
+  >                     if subdir.hasImages():
+  >                         self._subdirs.append( subdir )
+  >                 elif opts.quiet: print "ignoring subversion directory '%s'" % \
+  >                       ( af )
+
+  If that's interesting, feel free to use it.
+
+
+Other Project: photo organizer program to process images before curator
+-----------------------------------------------------------------------
+
+Basically, something that would do all I need to do to unpack and present my
+pictures:
+
+- categorize pictures for directories
+- write descriptions and titles, use previous easily (offer in list)
+- assign locations for organizing into directories
+- tag for publishing, not nice shouldn't need be published
+- delete
+- rotate
+- set attributes for a bunch of pictures at the same time (w/ multi-select list)
+- automatically generate directory names that will sort automatically in
+  curator.
+
+Also: other tool that can be used to select photos in a file hierarchy from
+particular attributes and tar them up with the description files
+
+
+
+
+* we must make the new curator able to deal with AVI or MPG files nicely.
+
+Reply sent to Fernando Perez who contributed a good summary of the work to be
+done on curator::
+
+   On Thursday 25 September 2003 03:18, Fernando Perez wrote:
+   > Hi Martin,
+   >
+   > I have a few comments/suggestions concerning your great curator program.
+   > First, I've included here a patch so that option information is properly
+   > formatted.  I suspect when you switched to optparse you didn't reformat
+   > your option help strings, so I did it in the least intrusive way I could.
+   > I also made 2.3 a requirement, since optparse effectively makes it so.
+   > Finally, I removed the distutils imports you were using for option parsing,
+   > since you seem to have fully gone to optparse now and they aren't needed
+   > anymore.
+
+   yes 2.3 is now a requirement.  i didn't fully port it yet, i just needed to fix
+   it for a friend who runs windows, i'm scraping for time to clean this up
+
+   >
+   > Those were my little contributions.  Now come the 'requests' :)  I've been
+   > long looking for a program to replace a highly hacked gallery creator I
+   > use, and curator _almost_ fits the bill.  I really like some of the
+   > concepts you implemented in curator, like the idea of tracks for images.
+   > But there are a couple of things which prevent me from using it in full.
+   > I'll mention them in case you find the time to implement them for a future
+   > release, which would be great.  I actually considered doing it myself, but
+   > the logic of the program is delicate enough that it would take me more than
+   > the limited time I could devote to this as a side hack.
+
+   thanks for the patch, i thought optparse did paragraph filling automatically
+
+
+   > The key issue is not having an option for making the final gallery with
+   > copies of the original images at a different size.  With 4-6 megapixel
+   > images as originals, it's not practical for the thumbnails to point to the
+   > originals for web browsing.  But I don't want to have to manually run a
+   > resizing script over whole directories, especially if I want to generate
+   > albums on CD at different sizes.  With my hacked igal (image gallery)
+   > script, typical usage is something like:
+   >
+   > igal -size 800 --no-originals .... # make an album with max.dim 600pixels
+   > igal -size 1000 --no-originals .... # make an album with max.dim 1000pixels
+   >
+   > and I can build out of the same original images quickly two albums with
+   > small/large resolution images (for uploading to a space-limited website)
+   > but still smaller than the huge originals.  If I don't pass the
+   > --no-originals option, each medium-sized image becomes a link to the
+   > full-size original (useful for burning on CD where space is less of an
+   > issue).
+
+   well, about this one, this must be the most requested feature, but everyone
+   wants a different thing.  so my attitude towards (and my own usage of it) is to
+   leave that functionality to an external script. curator support multiple
+   "representations" of the same image.
+
+   i'd like to implement it at some point anyway, but this will only happen when i
+   do the rewrite, and splitting it up in librarires and all, with specific objects
+   for methods for image reduction generation, etc. (which you desribe a bit below)
+
+
+   > These options make it very easy to produce, out of a set of very high
+   > resolution orignals, standalone directories for different purposes.  If you
+   > want to play with this functionality to see if you'd like curator to have
+   > it, feel free to grab my hacked igal from
+   > http://windom.colorado.edu/~fperez/igal. I don't suggest you read the code
+   > (it's heinous perl), just that it can illustrate useful functionality which
+   > I find curator currently lacks.
+
+
+   > Having that would definitely make (IMHO) curator a better tool for those
+   > handling high-res images.  My next comments are comparatively minor, just
+   > consider them suggestions for the future:
+   >
+   > - split curator into a set of one or more modules and curator itself.  Then
+   > curator should simply read:
+   >
+   > #!/usr/bin/env python
+   > import curator
+   > curator.main()
+   >
+   > or something similar.  curator/ would be a package and 'bin/curator' would
+   > be the above 3 line script.  The advantage of this is drastically reduced
+   > startup times (besides code organization), because everything but the 3
+   > line startup script is precompiled.  If you are not familiar with distutils
+   > package organization, I'd be happy to help you with this breakup (if you
+   > are interested, of course :)
+
+   the original idea behind curator was driven by my frustration in not being able
+   to find a simple program with little dependencies.  imagemagick and python (now
+   PIL and python), in a single file script was the best i found.  i did not even
+   intend to publish this thing originally, but i just created a SF project anyway,
+   and now i find lots of people are using it... i need to rewrite this thing
+   (especially now since i've gained a lot of experience with python since then)
+
+
+   > - A package organization would also make it easier to handle the different
+   > parts of the script as standalone units for a bit of an architectural
+   > cleanup (less reliance on globals, for example).
+
+   yes!
+
+   > - Embedding text into the image itself.  Useful for pasting copyright
+   > notices into images for web display.  ImageMagick can do this, I don't know
+   > about PIL.
+
+   again, this is often part of the image reduction phase, and everyone wants
+   something different
+
+
+   > - Have the ability to store all the per-image text info into a single file.
+   > When captioning an entire gallery, it feels a bit clunky to have to create
+   > a caption as a separate file for each image.  It would be a lot easier to
+   > keep emacs open and do something like:
+   >
+   > [img001.jpg]
+   > text....
+   > [img002.jpg]
+   > text...
+   >
+   > etc.
+
+   yes, and i would probably move to a simple XML format parsing it with the
+   effbot's elementtree.
+
+
+   > In fact, igal can be asked to create such an empty captions file for you
+   > automatically (with text... defaulting to the filename).  In this way, one
+   > can then just go into the file and fill in the the details for some images
+   > with minimal work.
+   >
+   > Furthermore, igal will build the gallery with the images in the order they
+   > appear in the captions file.  This makes it extremely easy to reorder
+   > images in each gallery so they appear in an order different than the
+   > default one given by 'ls'.  The same concept is applied to a gallery-wide
+   > index, with which one can reorder and caption each subgallery.
+
+   in the TODO file this is my next feature that i wanted to implement, the
+   "tracks" should indeed act like slideshows and the order should be specifiable
+   yes, it's not very useful otherwise.  also, instead of generating the tracks in
+   the same HTML page (not easy to browse), i would generate different sets of HTML
+   pages for each track, so you can use the imagemap navigation
+
+
+   >
+   > Well, in summary: I really like curator and I think it has lots of
+   > potential. A clean codebase, written in python, and some very interesting
+   > ideas.  But I feel it lacks some truly useful functionality which I've
+   > grown to rely on from igal.  On the other hand, I simply won't touch igal
+   > any further, so I'd love to be able to move over to curator.  If you find
+   > any of these suggestions useful, great.  If you end up implementing some of
+   > them, even better :)
+
+   these are great suggestions, thanks for taking the time to organize your
+   thoughts, i will use this email to plan for the rewrite!
+
+
+   > But I know that open source development happens when time allows, so please
+   > consider this lengthy message just a friendly set of comments.  I maintain
+   > a reasonably large python program myself (http://ipython.scipy.org, which
+   > you may find useful), so I know how it goes :)
+
+   indeed, i have a zillion other projects that are written and i'm dying for time
+   to finish them, i've got a travel site generator script to move to docutils
+   input, an advanced jukebox music collection tools to publish and write a more
+   flexible backend for, some tiny contractor tools to finish, like being able to
+   generate my invoices with an XML file as input instead of fiddling aimlessly
+   with gnumeric to do things right
+   (http://www.furius.ca/contract-tools/) and xxdiff to
+   maintain, and moving website, and building my company website, and i'm going
+   crazy, i'm working by the hour now, so it's hard to dedicate time to oss, this
+   might happen when i finish that contract.  all the ideas you mention are cool.
+
+   i'll check out your package, on my current assignment, i installed the
+   alternative readline lib for python (on windows xp to make it feel more like at
+   home on gentoo), i'll try your ipython instead later on today.
+
+   cheers,
+
+
+* add an option to use the <BASE> in the HEAD of the generated html to use paths
+  all relative to the root instead of the current directory.  Note that this is
+  not a really good solution and should be optional only because it won't work
+  when accessing the documents as file://, then again some people might prefer
+  that kind of output.
+
+* super nice idea from fxt:
+
+  make it able to create custom slide shows with a list of pictures in a certain
+  order
+
+  input a text file with the pictures in the desired order
+
+* bug: if only --browse is available, curator doesn't pick them up anymore
+  (e.g. use package_pics and try just running curator in the given subdir)
+
+* curator --out-onedir picks up its own html output directory when run twice in
+  a row.
+
+* update the Debian man file curator.sgml (fetch from the web).
+
+* something that is really annoying is that new directories are not stored in
+  order of date in the directory index, find a solution for that.
+
+ - for tracks, make curator able to use the basenames without the directories
+   for the picture names
+
+BIG BUG!  no-html is not the opposite of force-html, but they're implemented the same, do this!
+
+ - implement lowsrc in images using thumbnails as a source (tdemarge)
+
+ - write a script to copy the exif info from one jpeg file to another
+
+ - write a script to extract thumbnails from jpegs which have them, this should
+   make generating thumbnails much faster
+
+ - include "source: " field for archival retrieval
+
+ - instructions for making a CDROM under windows on web page
+
+#-------------------------------------------------------------------------------
+# long term
+#
+
+ - table generator: align image to top of cells, not center (vertically)
+
+ - global definitions file to be executed for each environment for all templates
+
+# merge getprop() and getattr() ?
+
+Eventually:
+
+ - the images don't necessarily reside where the HTML pages are, and can be
+   scattered/organized over many different directories;
+
+ - implement user-specified conversins
+
+
+# add 'next directory' functionality to script env
+
+# running surrogate programs, grab errors and print to stderr of this.
+# e.g. convert program
+
+# add reporting line or error in template
+
+# try accessing Image class... it works... but it shouldn't what can we do about
+# it?
+
+# --urls mode
+#   - only a global file, thumbnails generated locally
+#   - dependency on wget
+#   - look for desc file at URL location, then locally
+
+# support generating an HTML global index with a list of URLs away from output
+# dir. Should generate global index and image pages only. This would be a
+# special mode.
+
+# perhaps vars( class(envir) ) would solve the ugly hack for methods otherwise
+# we could bin by hand
+
+# allow placing thumbnails in an arbitrary directory.
+
+# you'll want to support adding a copyright to individual images, and other
+# types of conversions, processing
+
+# implement <convert> field to automatically make conversions (optional) the
+# code should be the same as thumbnails, the thumbnails is only a particular
+# case of this.
+
+Commands:
+
+for f in `find . -name \*.jpg ! -name \*thumb* `; do echo $f ; j=`echo $f | sed -e 's/jpg/desc/'`; echo "settings:" > $j ;  ~/curator/exif995.py $f  >>   $j ; done
+
+
+
+
+------------------------------
+
+Currently the following files are produces:
+
+ in root directory:
+ allindex.html
+ sortindex.html
+ trackindes.html
+
+ in every directory including root:
+ dirindex.html
+ image.html
+
+ It is good practice to have an index.html in each
+directory, to give the web server a default file to
+display. True, one could change the web server
+default to "allindex.html, dirindex.html", but only
+if you run your own web server.
+
+ With this in mind, it would be nice if there were an
+option to tell curator the following:
+ - name the dirindex.html file in all none root
+ directories 'index.html'
+ - name the allindex.html file 'index.html'
+ or
+ name the sortindex.hml file 'index.hml'
+ or
+ name the trackindex.hml file 'index.hml'
+ or
+ name the dirindex.hml file in the root
+ directory 'index.hml'
+
+ References from the templates to the files should
+take this into account and point to the right file,
+of course.
+
+ Maybe I am the only one who ran into this problem,
+maybe not.
+
+ Hope you like the idea.
+
+ Regards,
+ Thomas
+
+------------------------------
+
+From: Jean-Luc Duprat <jld@acm.org>
+To: Martin Blais
+Subject: RE: copyright notice
+
+> dis, avec quel logiciel es-tu ajout=E9 le copyright notice sur
+> tes photos?
+> c'est joli.
+
+Un petit shell script qui invoke ImageMagick:
+1) resize photo
+2) Composite the copyright notice
+3) Add a copyright comment to the image the jpg.
+   The last step is nice if you "file" the image.
+
+L'image que je composite sur la photo a ete cree avec gimp:
+800x15, fill blanc avec 50% opacite, texte par dessus, saved as=
+ png.  L'avantage de faire un composite, plutot que la ligne=
+ commentee du script, c'est que cela m'evite d'utiliser "gs" pour=
+ dessiner le texte, ce qui est plus rapide -- et gs n'est pas=
+ installe sur le serveur que j'utilise.  De plus c'est un peu=
+ plus rapide...
+
+
+JL
+---------
+
+#!/bin/sh
+
+function process_image ()
+{
+   echo Processing $1...
+   convert $1 -size 800x600 -geometry 800x600 +profile '*' $1.1
+#   convert $1.1 -fill gray98 -draw "rectangle 0,585 800,600"=
+ -fill black -draw 'text 200,596 "  Copyright (c) 2003 Jean-Luc=
+ Duprat <jld@acm.org>  All rights reserved."' $1.2
+   composite -geometry +0+585=
+ ~/src/adventures/share/atom/resources/copyright2003.png $1.1=
+ $1.2
+   convert $1.2 -comment "Copyright 2003 Jean-Luc Duprat=
+ <jld@acm.org>  All rights reserved." $1.3
+   if test -e $1.3; then
+     rm $1 $1.1 $1.2
+     mv $1.3 $1
+   else
+     rm $1.1 $1.2
+   fi
+}
+
+function extract_exif ()
+{
+   if test ! -e $f.desc; then
+     ~/src/adventures/tools/exiftool -f=
+ ~/src/adventures/etc/exif_template -i desc $1
+   fi
+}
+
+
+echo Extracting EXIF data...
+for f in *.jpg; do
+   if test -e $f; then
+      extract_exif $f
+   fi
+done
+for f in *.JPG; do
+   if test -e $f; then
+      extract_exif $f
+   fi
+done
+
+for f in *.jpg; do
+   if test -e $f; then
+      process_image $f
+   fi
+done
+for f in *.JPG; do
+   if test -e $f; then
+      process_image $f
+   fi
+done
+
+--46523270
+Content-Type: image/png; name="copyright2003.png"
+Content-Transfer-Encoding: Base64
+Content-Disposition: attachment; filename="copyright2003.png"
+
+iVBORw0KGgoAAAANSUhEUgAAAyAAAAAPCAYAAAAcYqsWAAAABmJLR0QA/wD/AP+gvaeTAAAACXBI
+WXMAAAsSAAALEgHS3X78AAAAB3RJTUUH0woVDBYVDVbTdQAADzJJREFUeJztnU1r28rXwI8f/msp
+IRC4oIAC3tRZZCER6uzawDUO8arxpsgE4kWgeOF8AKMR+QDVIhSysCFckY2TVUxECkl2cTCZRRZx
+NoYKLCgUQq/0BfIs7ONOpvJbXvpyOz8obSXNzNHMkXzOzDmj2N3dHQGBQCAQCAQCgUAg+AH8388W
+QCD4E6CUSrquZ2OxmBmLxcyJiYnN5eXlv3+2XAAAKBchJDFqGbyPx7ZNKZVisZiZz+dfPsV1CCEk
+QQhJUEqlqLrwfFRZx3EUQkjCcRxl3LoHyROLxUxd17OjlnlqfoYMrM6zf34V3X9qJiYmNmOxmDk7
+O5vnz/HP2UOeu4eM4UPaEXR4qvecQCD4HuGACATPTNf52KSU9gyAIAgk13WTP9MgfU5GNZRWV1ez
+siyH5XL5YtB1mqaF6XS6XqlUUoMMf2zXsqysZVlZXdc3WRkIIQld1zfx/MTExCbraOi6ns3lcnnL
+srK5XC7PGpKEkMTExMRmv7oFo/Or6P5TOmWO4yhBEEgAAJ7nKeM4qD8bYWgLBIIfzf9+tgACwX+d
+1dXVLACApmnNnZ2dY03TQsdxlEKhkKWUJroz6k28Hmcq4/F4aBiGj8cdx1FarZaUyWR8AIDDw0Ml
+k8n4mqaFAB1H5/DwUGHL8cewbkJI03Ec5cWLF+Hl5WU1Sm5CSCKqHH8dKxfKMgqO4yie5ynr6+vH
+7HGUmW9va2vrwnXd5OrqavbTp09lvj5KqWRZVhYAYH19/XhmZia0bTtFKU3k8/mXr1698i3Lysqy
+HBaLxeN2uy1VKpVUoVDIGobxfnl5+W9KaULTtObKysp1rVabo5QmlpeX/z46Ovpo23YqCAIJ5T04
+OEhSShOO4yjsOI0D9h0/1nw/8Of5cXxI/0f13zD9GUXuKEzTrOJYEkISlmVl2b6L0i/2WJQe821H
+XYP1obwAAI/tp37s7e3dW2EolUovj46OPj60Pv55v7m5kQghTUKI1e/aYfrQbzz7wa6aRD37g2TF
++h+q4/x5tv1++sDfd1RfDNPdQe86gUDwdAgHRCB4Riilkud5CgAAa+gbhuGfnZ3Vr66uZvAYGmZs
+edu2m1jOtu0kpTRRq9WauJpiWRak0+n60dHRx5ubGwkNbMMw3gN0nBTLsrLpdLpuGIaP9Tcajbrr
+uknTNKsbGxtzlNIEGomUUmlpaSmPs7m2bffa442f5eXlv13XTXavC7e3t6utVqvnCFBKE7quZ6Oc
+nFKplAIAePfuXe+HPp/Pv6xUKin8v2VZPeNV07RQVVUfZ5d54woNFU3TmuyKimVZWbaf37x5U0fj
+4vT0dM7zPMVxHOXm5mYGAACdxEwm4+u6njg/P58DgI/xeNyfn59vY91XV1czlNIEGrbjout6ll0V
+Y8c6ShdKpZKPjhc/jthX//zzT/mhzhDqiqZpTcMwqv2Ozc7O5lGnAQAKhUJ4cnJSHtWoJ4Q0Ue69
+vb0Eq5esfrHHUA5VVf1CoSChbpZKJX9/f7+qaVrIylooFJQgCCRCiMX3s2VZPQd1FD0dla6egGma
+Vcuysqg3D60Pn3fsK03Tmq1W6xrvEWVl78+27XBycjLsjk9V07Tes9VoNBRWp87Ozo7L5fIFu/IR
+i8XMu7s7i38HYN39xjlKVsMwquPq+KDzbPtRY51Op+uu6yYbjUYdHb9SqZTyPE+Jx+NlTdPCQfLw
+91yr1YQDIhA8IyIESyB4RlijmD9XLpcvLi8vqzhryc7em6ZZlWU5xBl4thylNLG+vn6MM/Gu6yZx
+JlmW5TAIAgnDimq12hwAwNu3b++1f35+PqdpWjMej39nTOCPsKZpTdM0q61WKzIXgq0HoBNWZtt2
+MpPJ+Ol0ug4AoKqqXywW61FlPc9TZFkO2ZnJSqWSkmU5NE2zivdn23bPIXnx4kUbAODDhw/fxbNn
+MhnfNM0q21673ZYAAKanpwN0QmZmZnr3PDU1FQIAtFqtnqOI8uDfaJBcXl5Wy+XyheM4Sj6ff4mr
+JQ+ZKWVXW0zTrKqq6rNjHaULnucpfBw/2//dvkqOK8u4cnuep6DcmqY1gyCQSqXSSLk5yMLCgg8A
+8OXLF3mccl1j0mf7hG+bUpqYnJwMu2OToJQmeJ2qVCqpUfV0FDD8SlVVnxDS5J/Dx4AG/fz8fJs/
+h3qE9xePx33WOYyqR5blEKDTBwAdhwmvwX+XSqWX7DsAx3ljYyMVVXeUrMN0HJ9r/n2H+Vc4mWKa
+ZjWdTteDIJCWlpbu5dawY43vOJxIAPj2jjEMwx8mzzjvPYFA8HjECohA8AuA4RvpdLqOM+zxeDzM
+5XL57gx3byaVvebz588SO5O8uLh47bpu8uzsTDEMw0fjhJ8VZ2cybdvuHUdDSpblXmhWdyVgM0pu
+rIddudA0LVxYWPBd14WpqamBYQ7xeLx3DvuAXaEA6Kw0oIOF9XadiXt5I5qmhawxTghJVCqVlKZp
+zaOjo49PlXNwdnamHBwc9Az9qNWYYeBsObfasomz5l1j8l74WxRR/Q/QmRVnr3vMzP4guQkhTV3X
+s+M6Eg+F1Ut8PviVBlVVeytF3TyMKoYGsY7rKHo6Kqi7r1+/vgYAwOcQn8uH1gvQMdDxeY9yQAEA
+tre3q11dafIrVHw9mJOGxwkhTcuyev9my9ze3koAnfE+PDy8jpqw6CfrxMTEJpaN0nEs8/nzZ2lm
+ZiY8OTkpY1gpOpXMu6A5Ozs7g6uVWJYda4DOihiukOLkz+Li4jXbV1HyOI7THOe9JxAIHo9wQASC
+ZwR/sKNm09hYZDTgcGYYoBOmlcvlvquTvQYNKCz/9u3bpuu6ydPT0znHcXyAbz/ALP0MZgwnYh2D
+QcY1nmNXFR4K3gNbV9eYGZigzkMplUql0kvXdZMYnvZY2VjK5fJFuVy+QKO/VCoFfBsY6sHmPrDg
+qgpv4ODxdrst2badyuVykqqqfQ3Yfv3Phpk8JSgfqxMPcW5wZWpcWL3E54MNEwL4tqqFsKFHUSuR
+TwGGwZ2ens7puj6Dhvtjw7AABj9beO+skzM1NRV6nte3nlGc5a2trQuAjvzdTRdAVVV/bW1t4CoR
+K+swHd/e3q7atp10XTfpui5YlgWapjUzmYyP74JKpZJiHWuAb+8ovFf23OvXr68rlYpyeHio8Ku/
+g+QZ970nEAgej3BABIJnxDAMv1AohN149HvJ5oVCIRsEgWSaZnV6ejoA6BhLANAE6M3efgdrvPGG
+HLbneZ6Cs7J8+NUosA7Tj97Nh72nfD7/8urqagZnLYeVxThuAIDLy8v3bJn5+fl2N06918d4n/F4
+vJdfgqstONMqy3LoOI6Sy+Xy/IwrwPhhRCxs+AuCoWiqqvr//vvve4Dv80UeUu+ooPEM0N9RYFd9
+dF3PTk9Pf+eE9YNSKuEK0srKyjV/TtO0sJ/OsbKNopfoiLIz80+92xO7KuF5nsIa/xiG9dhVkGGw
+bbB99FAODw+VhYUF/+jo6COlVPrw4UOiUqmkLMvKRiXBDyJKFymlUqvVkorFYt0wjKrjOArmkWxs
+bPSuS6fTdXbCBaCzMoGrGzzv3r1rViqVVK1Wm2u1WkrU6m+UPFETRb/TLmYCwe+IcEAEgmfmzZs3
+dfzx3t3d9aempsJWq9ULdermgITdmcBkPp8PcQcngM6PMFvfwcFBEhO3oww5bM913WTUD/AgCCFN
+27bDIAgkXdezKysr12wOxrjc3t5GGmAY9sH+4BeLxXoul0uw4U2YE4LGbtd5gKh4eIBvcdyqqvps
+vPr8/Hz71atXfqVSwS1g5dvbWwnHwDAMf29vr+15nlIoFLK2bfso2+Li4jXr2M3OzuanpqZCdAii
+ZEFnx7btnjEE0MlFAeiEjniep9RqtbmVlZXrRqOhuK6bZGeZv379KhFCEu12Wxp3RWNQXkqr1VL4
+EK35+fk2zl5H3SOCib6rq6vZtbW1Ou4Uxusoz+7ubhJnpHndZ69bWlrKx+Nxv1/8PebBEEKaOL6D
+VjXQOby6upohhIQoAw+rp+j0do3joc8O1skby9g3TxGG1Q8cj0KhkG21Wse1Wm2uXw7IKGDf7u7u
+Jj3PUxqNxr17wvyRURik45lMpoo5HmdnZ3V25WR6ejr466+/Qkpp4vz8fG5hYcFvt9vSwcFBMggC
+KZPJvO/XJm5UgXrL6uUgeT59+lTGiaJB7z18bp4qpFEg+JMRDohA8MyUy+ULzNVgZ0hVVfX39/er
+AJ2Vi1arVbUsK8uGHGD+Al8nG0bAJ0LjLCBAxxkZV95isXiM26Ri0ua4BjDOKHqep9i2ncQdlFj4
+Ha26TkDddd0kyo9b5mIZTDBld85CCCEJ9jsMfBhKuVy+wD7G+5FlOTw5OSkDAHTzRGS8b4D7/V8s
+Fo9t206xdfM7brFt4S5ZWJeqqj6Gtuzv71eXlpby/Hnc0QmdQDTSsK/Y1ZuHEgRBpENTLperuMMa
+3iMauHjN1tbWxc3NzYzneb2wJva++sGPB9vvAN92jkLZ+HbZchgShP/f2dk55q9D0KlldRnPOY6j
+ROkps7vZd6GLUWBfbm1tXbArbt0clcRThGH1Y2tr6+L8/HwuSlfGqQeT5nGFY21trW7bdgrDoxD2
+WRzGMB3HMWbfd7Ish9iPOA6oZ5iQ3t0Fq2+7GIYFcH/1d5A8eG+4bXe/995zhTYKBH8isbu7O/Kz
+hRAI/hT6feMj6hp+H382r6DRaChfvnyR2W1hWTARlQ9DitrjPmqvfH6ffQxbubu7s6LqGecbEgjm
+ULDhMWw5Xk5Mno0Kg+LL8UTJxdfP98ew7wSM8j2JYXUNOj/oewSj9D/PqP0zyndFRv0OCPv9jai2
+ouTr1xe47Sp+o2V6ejpgjf5+5Yf1DX9+nO+qDNOlQd9rGdbOKM9lVDt8/lFUPVG6NehYv/sbJCt/
+7jm/AzJKmVHk6dcPo5wTCATjIRwQgeA3YVhiM4J5EJOTk2GUoT4MdDbwmxL4rQ9ZlkPMSXgqZmdn
+81+/fpVGqRfl4J0qwX8f1gER4S/fwHcCbraAuUoA8KhvwggEAsFzI74DIhD8hyCEJHRd3wyCQBq2
+Y00/MEkzl8vlY7GYic4HGzLzVOzv71eDIJDy+fzA70hQSiVMJhbOh0DQYWdn51iW5dB13WQsFjPR
++TBNsyqcD4FA8CsjVkAEgt+EUUJDMPxglPCRYYwSLiYQ/AhGCTH7k2FD3UR4kEAg+B34f2skgcnp
+F36hAAAAAElFTkSuQmCCDQotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLTdkMzMxMmMyMDE1
+Ng0KQ29udGVudC1EaXNwb3NpdGlvbjogZm9ybS1kYXRhOyBuYW1lPSJ4Ig0KDQo0MA0KLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS03ZDMzMTJjMjAxNTYNCkNvbnRlbnQtRGlzcG9zaXRpb246
+IGZvcm0tZGF0YTsgbmFtZT0ieSINCg0KMTg=
+
+--46523270--
+
+
+
+
+
+
+
+

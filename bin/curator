@@ -1,9 +1,9 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 #******************************************************************************\
 #* $Source$
-#* $Id: curator 109 2003-02-03 08:01:37Z blais $
+#* $Id: curator 235 2005-04-01 05:29:42Z blais $
 #*
-#* Copyright (C) 2001, Martin Blais <blais@iro.umontreal.ca>
+#* Copyright (C) 2001, Martin Blais <blais@furius.ca>
 #*
 #* This program is free software; you can redistribute it and/or modify
 #* it under the terms of the GNU General Public License as published by
@@ -184,8 +184,9 @@ If <root> is not specified, we assume cwd is the root.
 # to call the rel method to generate relative links. This simplifies
 # handling of paths a lot.
 
-__version__ = "$Revision: 109 $"
+__version__ = "$Revision: 235 $"
 __version_pr__ = '2.0'
+__author__ = "Martin Blais <blais@furius.ca>"
 
 #===============================================================================
 # EXTERNAL DECLARATIONS
@@ -197,17 +198,14 @@ if int(sys.version[0]) < 2:
         "Error: you need Python version 2 or more to run this friggin' script.")
     sys.exit(1)
 
-from distutils.fancy_getopt \
-     import FancyGetopt, OptionDummy, translate_longopt, wrap_text
-
 import os, os.path, dircache
-from os.path import join as joinpath, dirname, basename, normpath, splitext
+from os.path import join, dirname, basename, normpath, splitext
 from os.path import isfile, islink, isdir, exists
 
 import re, string
 import StringIO
-from pprint import pprint, pformat, PrettyPrinter
-from urllib import quote as urlquote, unquote as urlunquote
+from pprint import pprint, pformat
+from urllib import quote as urlquote
 
 import imghdr
 import stat
@@ -276,6 +274,8 @@ class FCache:
         return e.info
 
     def dump( self ):
+        if not opts.quiet:
+            return None
         print "Cache filename:", self.cachefn
         print
         for e in self.entries.values():
@@ -314,37 +314,40 @@ def rel( dest, curdir ):
 
     while len( sc ) > 0 and len( sd ) > 0:
         if sc[0] != sd[0]:
-            break;
+            break
         sc = sc[1:]
         sd = sd[1:]
 
     if len( sc ) == 0 and len( sd ) == 0:
         out = ""
     elif len( sc ) == 0:
-        out = apply( joinpath, sd )
+        out = apply( join, sd )
     elif len( sd ) == 0:
-        out = apply( joinpath, map( lambda x: os.pardir, sc ) )
+        out = apply( join, map( lambda x: os.pardir, sc ) )
     else:
-        out = apply( joinpath, map( lambda x: os.pardir, sc ) + list( sd ) )
+        out = apply( join, map( lambda x: os.pardir, sc ) + list( sd ) )
 
     # make sure the path is suitable for html consumption
     return out
 
-#-------------------------------------------------------------------------------
+# #-----------------------------------------------------------------------------
+# #
+# def html_join(a, *p):
 #
-def html_join(a, *p):
-
-    """Version of os.path.join() that uses strickly '/', for legal HTML
-    output."""
-
-    # Hopefully, all paths will at some time have gone through this, it should
-    # work under Windows.
-    p = apply( joinpath, ( a, ) + p )
-    p = p.replace( os.sep, '/' )
-    return p
-
-if os.sep != '/':
-    joinpath = html_join
+#     """Version of os.path.join() that uses strickly '/', for legal HTML
+#     output."""
+#
+#     # Hopefully, all paths will at some time have gone through this, it should
+#     # work under Windows.
+#     print 'a', a
+#     print 'p', p
+#
+#     p = apply( join, ( a, ) + p )
+#     p = p.replace( os.sep, '/' )
+#     return p
+#
+# if os.sep != '/':
+#     join = html_join
 
 #-------------------------------------------------------------------------------
 #
@@ -411,10 +414,10 @@ def getMagickProg( progname ):
     """Returns the program name to execute for an ImageMagick command."""
 
     if magick_path_cache.has_key( progname ):
-        return magick_path_cache[ progname ]
+        p = magick_path_cache[ progname ]
     else:
         if opts.magick_path:
-            prg = joinpath( opts.magick_path, progname )
+            prg = join( opts.magick_path, progname )
         else:
             prg = progname
         magick_path_cache[ progname ] = prg
@@ -429,7 +432,10 @@ def getMagickProg( progname ):
                 print >> sys.stderr, \
                       "Perhaps try specifying it using --magick-path."
 
-        return prg
+        p = prg
+
+    o = p
+    return o
 
 
 
@@ -667,19 +673,22 @@ class Dir:
 
         self._pagefn = None # to be computed outside according to policies
 
-        files = dircache.listdir( joinpath( root, path ) )
+        files = dircache.listdir( join( root, path ) )
 
-        pattr = joinpath( root, self._path, dirattr_fn )
+        pattr = join( root, self._path, dirattr_fn )
         if exists( pattr ) and isfile( pattr ):
             self._attrfile = AttrFile( pattr )
             self._attrfile.read()
             if self._attrfile.keys():
-                print "  read attributes", self._attrfile.keys()
+                if opts.quiet: print "  read attributes", self._attrfile.keys()
 
         imgmap = {}
         for f in files:
-            af = joinpath( path, f )
-            paf = joinpath( root, af )
+            af = join( path, f )
+            paf = join( root, af )
+
+            if opts.ignore_links and islink(paf):
+                continue
 
             # add subdir
             if isdir( paf ):
@@ -693,7 +702,7 @@ class Dir:
 
                 # perhaps ignore file
                 if opts.ignore_pattern and opts.ignore_re.search( af ):
-                    print "ignoring file", af
+                    if opts.quiet: print "ignoring file", af
                     continue
 
                 # check for separator
@@ -724,10 +733,10 @@ class Dir:
         # Detect thumbnails, imagepages, attributes files.
         for i in imgmap.keys():
             e = imgmap[i]
-            print "looking for images with base '%s'" % \
-                  joinpath(e._dir._path, e._base)
+            if opts.quiet: print "looking for images with base '%s'" % \
+                  join(e._dir._path, e._base)
             e.cleanAlts()
-            if not e.selectName( joinpath( root, path ) ):
+            if not e.selectName( join( root, path ) ):
                 del imgmap[i]
             print
 
@@ -735,7 +744,8 @@ class Dir:
             img = imgmap[f]
             img.init( self._attrfile )
             if img._ignore:
-                print "ignoring", img._base, "from desc file ignore tag."
+                if opts.quiet:
+                    print "ignoring", img._base, "from desc file ignore tag."
                 continue
             self._images.append( img )
 
@@ -794,7 +804,18 @@ class Dir:
                 return 1
         return 0
 
+#-------------------------------------------------------------------------------
+#
+def Dir_cmpdates( dir1, dir2 ):
+    """Compare two subdirectories by date."""
 
+    t1, t2 = map(lambda x: os.stat(x._path).st_ctime, [dir1, dir2])
+    c = cmp(t1, t2)
+    if c != 0:
+        return c
+    return cmp(dir1, dir2)
+
+    
 #===============================================================================
 # CLASS Image
 #===============================================================================
@@ -830,19 +851,19 @@ class Image:
 
         """Performs proper initialization."""
 
-        self._filename = joinpath( self._dir._path, self._base )
+        self._filename = join( self._dir._path, self._base )
         if self._repn: self._filename += opts.separator + self._repn
         if self._ext: self._filename += self._ext
 
         # Create attrfile object.
         if self._attr:
-            pattr = joinpath(opts.root, self._dir._path, \
+            pattr = join(opts.root, self._dir._path, \
                              self._base + self._attr)
             if exists( pattr ) and isfile( pattr ):
                 attr = AttrFile( pattr )
                 attr.read()
                 if attr.keys():
-                    print "  read attributes", attr.keys()
+                    if opts.quiet: print "  read attributes", attr.keys()
 
                 self._attr = attr
 
@@ -863,7 +884,7 @@ class Image:
 
         # no title, so use something unique to the image, it's path
         if not self._title:
-            self._title = joinpath(self._dir._path, self._base)
+            self._title = join(self._dir._path, self._base)
 
         # make up map of altrepns
         self._altrepns = {}
@@ -892,7 +913,7 @@ class Image:
         # Detect html files, remove them in the altrepn
         try:
             idx = self._salts.index( opts.htmlext )
-            print "  detected existing imagepage '%s'" % opts.htmlext
+            if opts.quiet: print "  detected existing imagepage '%s'" % opts.htmlext
             del self._salts[idx]
         except ValueError:
             pass
@@ -900,7 +921,7 @@ class Image:
         # Detect attributes files, remove them in the altrepn
         try:
             idx = self._salts.index( opts.attrext )
-            print "  detected attributes file '%s'" % opts.attrext
+            if opts.quiet: print "  detected attributes file '%s'" % opts.attrext
             self._attr = self._salts[idx]
             del self._salts[idx]
         except ValueError:
@@ -909,7 +930,7 @@ class Image:
         # Detect thumb file, separate them from altrepns
         for k in self._calts:
             if k.startswith( opts.thumb_sfx ):
-                print "  detected thumb file '%s'" % k
+                if opts.quiet: print "  detected thumb file '%s'" % k
                 self._thumbfn = k
                 self._calts.remove( k )
                 break
@@ -921,7 +942,7 @@ class Image:
         """Select base file (image file) for image page generation. Returns true
         if it could find a suitable one."""
 
-        print "  ", self._salts + self._calts
+        if opts.quiet: print "  ", self._salts + self._calts
 
         #
         # choose one representation for the imagepage
@@ -933,7 +954,7 @@ class Image:
             for f in self._salts + self._calts:
                 if ref.search( f ):
                     ff = self._base + opts.separator + f
-                    paf = joinpath( absdirname, ff )
+                    paf = join( absdirname, ff )
                     if imgwhat( paf, opts.fast ):
                         if f in self._salts:
                             self._salts.remove( f )
@@ -942,10 +963,10 @@ class Image:
                             self._calts.remove( f )
                             ( self._repn, self._ext ) = splitext( f )
 
-                        print "  choosing affinity '%s'" % f
+                        if opts.quiet: print "  choosing affinity '%s'" % f
                         return 1
                     else:
-                        print "  ignoring non-image '%s'" % f
+                        if opts.quiet: print "  ignoring non-image '%s'" % f
 
         # 2) the first of the base files which is an image file
         if opts.use_repn:
@@ -958,7 +979,7 @@ class Image:
         for f in eee:
             if not f.startswith('.'): f = opts.separator + f
             ff = self._base + f
-            paf = joinpath( absdirname, ff )
+            paf = join( absdirname, ff )
             if imgwhat( paf, opts.fast ):
                 if f in self._salts:
                     self._salts.remove( f )
@@ -966,12 +987,12 @@ class Image:
                 else:
                     self._calts.remove( f )
                     ( self._repn, self._ext ) = splitext( f )
-                print "  choosing imagefile '%s'" % f
+                if opts.quiet: print "  choosing imagefile '%s'" % f
                 return 1
             else:
-                print "  ignoring non-image '%s'" % f
+                if opts.quiet: print "  ignoring non-image '%s'" % f
 
-        print "  no imagepage for base '%s'" % self._base
+        if opts.quiet: print "  no imagepage for base '%s'" % self._base
         return 0
 
     #---------------------------------------------------------------------------
@@ -1007,16 +1028,16 @@ class Image:
         if not img._thumbfn:
             return
 
-        aimgfn = joinpath( opts.root, img._filename )
+        aimgfn = join( opts.root, img._filename )
         if not opts.fast:
             img._size = imageSize(aimgfn)
 
-        athumbfn = joinpath( opts.root, img._thumbfn )
+        athumbfn = join( opts.root, img._thumbfn )
 
         if opts.thumb_force:
-            print "forced regeneration of '%s'" % img._thumbfn
+            if opts.quiet: print "forced regeneration of '%s'" % img._thumbfn
         elif not exists(athumbfn):
-            print "thumbnail absent '%s'" % img._thumbfn
+            if opts.quiet: print "thumbnail absent '%s'" % img._thumbfn
         else:
             # Check if thumbsize has changed
             if not opts.fast:
@@ -1024,78 +1045,93 @@ class Image:
                 if not checkThumbSize( img._size,\
                                        img._thumbsize, \
                                        opts.thumb_size ):
-                    print "thumbnail '%s size has changed" % img._thumbfn
+                    if opts.quiet: print "thumbnail '%s size has changed" % img._thumbfn
                     try:
                         # Clear cache for thumbnail size.
                         del imageSizeCache[ athumbfn ]
                     except:
                         pass
                 else:
-                    print "thumbnail '%s' already generated (size ok)" \
+                    if opts.quiet: print "thumbnail '%s' already generated (size ok)" \
                           % img._thumbfn
                     return
             else:
-                print "thumbnail '%s' already generated" % img._thumbfn
+                if opts.quiet: print "thumbnail '%s' already generated" % img._thumbfn
                 return
 
         if opts.no_magick:
-            print "ImageMagick tools disabled, can't create thumbnail"
+            if opts.quiet: print "ImageMagick tools disabled, can't create thumbnail"
             return
 
         # create necessary directories
         d = dirname(athumbfn)
         if not exists(d):
             os.makedirs(d)
+            
+        if opts.pil:
 
-        cmd = getMagickProg('convert') + ' -border 2x2 '
-        # FIXME check if this is a problem if not specified
-        #cmd += '-interlace NONE '
+            try:
+                im = PilImage.open(aimgfn)
+                im.thumbnail( (opts.thumb_size, opts.thumb_size) )
+                im.save(athumbfn)
 
-        cmd += '-geometry %dx%d ' % ( opts.thumb_size, opts.thumb_size )
-
-        if opts.thumb_quality:
-            cmd += '-quality %d ' % opts.thumb_quality
-
-        # This doesn't add text into the picture itself, just the comment in the
-        # header.
-        if opts.copyright:
-            cmd += '-comment \"%s\" ' % opts.copyright
-
-        # We use [1] to extract the thumbnail when there is one.
-        # It is harmless otherwise.
-        subimg = ""
-        if img._ext.lower() in [ ".jpg", ".tif", ".tiff" ]:
-            subimg = "[1]"
-
-        cmd += '"%s%s" "%s"' % ( aimgfn, subimg, athumbfn )
-
-        print "generating thumbnail '%s'" % img._thumbfn
-
-        (chin, chout, cherr) = os.popen3( cmd )
-        errs = cherr.readlines()
-        chout.close()
-        cherr.close()
-        if errs:
-            print >> sys.stderr, \
-                  "Error: running convert program on %s:" % aimgfn
-            errs = string.join(errs, '\n')
-            print errs
-
-            if subimg and re.compile('Unable to read subimage').search(errs):
-                print "retrying without subimage"
-                cmd = string.replace(cmd,subimg,"")
-
-                (chin, chout, cherr) = os.popen3( cmd )
-                errs = cherr.readlines()
-                chout.close()
-                cherr.close()
-                if errs:
-                    print >> sys.stderr, \
-                          "Error: running convert program on %s:" % aimgfn
-                    print string.join(errs, '\n')
+                img._thumbsize = im.size
+            except IOError, e:
+                raise SystemExit(\
+                    "Error: identifying file '%s'" % aimgfn + str(e))
 
         else:
-            img._thumbsize = imageSize(athumbfn)
+    
+            cmd = getMagickProg('convert') + ' -border 2x2 '
+            # FIXME check if this is a problem if not specified
+            #cmd += '-interlace NONE '
+    
+            cmd += '-geometry %dx%d ' % ( opts.thumb_size, opts.thumb_size )
+    
+            if opts.thumb_quality:
+                cmd += '-quality %d ' % opts.thumb_quality
+    
+            # This doesn't add text into the picture itself, just the comment in
+            # the header.
+            if opts.copyright:
+                cmd += '-comment \"%s\" ' % opts.copyright
+    
+            # We use [1] to extract the thumbnail when there is one.
+            # It is harmless otherwise.
+            subimg = ""
+            if img._ext.lower() in [ ".jpg", ".tif", ".tiff" ]:
+                subimg = "[1]"
+    
+            cmd += '"%s%s" "%s"' % ( aimgfn, subimg, athumbfn )
+    
+            if opts.quiet: print "generating thumbnail '%s'" % img._thumbfn
+    
+            (chin, chout, cherr) = os.popen3( cmd )
+            errs = cherr.readlines()
+            chout.close()
+            cherr.close()
+            if errs:
+                print >> sys.stderr, \
+                      "Error: running convert program on %s:" % aimgfn
+                errs = string.join(errs, '\n')
+                print errs
+    
+                if subimg and \
+                       re.compile('Unable to read subimage').search(errs):
+                    if opts.quiet: print "retrying without subimage"
+                    cmd = string.replace(cmd,subimg,"")
+    
+                    (chin, chout, cherr) = os.popen3( cmd )
+                    errs = cherr.readlines()
+                    chout.close()
+                    cherr.close()
+                    if errs:
+                        print >> sys.stderr, \
+                              "Error: running convert program on %s:" % aimgfn
+                        print string.join(errs, '\n')
+    
+            else:
+                img._thumbsize = imageSize(athumbfn)
 
 
 #===============================================================================
@@ -1127,7 +1163,17 @@ def imageSizeNoCache( filename ):
         return ( 0, 0 )
 
     fn = filename
-    if not opts.old_magick:
+    if opts.pil:
+
+        try:
+            im = PilImage.open(fn)
+            s = im.size
+        except IOError, e:
+            raise SystemExit("Error: identifying file '%s'" % fn + str(e))
+
+        return s
+
+    elif not opts.old_magick:
 
         cmd = getMagickProg('identify') + ' -format "%w %h" ' + \
               '"%s"' % fn
@@ -1185,10 +1231,10 @@ def imageSize( path ):
 
     global fcachesizes
     if not fcachesizes:
-        fcachesizes = FCache( joinpath(opts.root, '.fcache') )
+        fcachesizes = FCache( join(opts.root, '.fcache') )
 
     sizestr = fcachesizes.lookup(path)
-    if sizestr != None:
+    if sizestr != None and sizestr != '0x0': # kludge
         mo = szre.match(sizestr)
         if mo:
             return ( int(mo.group(1)), int(mo.group(2)) )
@@ -1219,7 +1265,7 @@ def generatePage( fn, ttype, envir ):
     """Generates an index page, replacing the tags as needed."""
 
     # create necessary directories
-    d = dirname(joinpath(opts.root,fn))
+    d = dirname(join(opts.root,fn))
     if not exists(d):
         os.makedirs(d)
 
@@ -1227,7 +1273,7 @@ def generatePage( fn, ttype, envir ):
 
     # Write out modified file.
     try:
-        afn = joinpath(opts.root, fn)
+        afn = join(opts.root, fn)
         tfile = open( afn, "w" )
         execTemplate( tfile, templates[ttype], envir )
         tfile.close()
@@ -1242,7 +1288,7 @@ def generateSummary( fn, allimages ):
     """Generates the text index that could be used by other processing tools."""
 
     # create necessary directories
-    d = dirname(joinpath(opts.root,fn))
+    d = dirname(join(opts.root,fn))
     if not exists(d):
         os.makedirs(d)
 
@@ -1259,7 +1305,7 @@ def generateSummary( fn, allimages ):
 
     # Write out file.
     try:
-        afn = joinpath(opts.root, fn)
+        afn = join(opts.root, fn)
         tfile = open( afn, "w" )
         tfile.write( otext )
         tfile.close()
@@ -1366,14 +1412,14 @@ def readTemplate( tfn ):
 
     # check in user-specified template root.
     if opts.templates:
-        fn = joinpath( opts.templates, tfn )
+        fn = join( opts.templates, tfn )
         if opts.verbose: print "  looking in %s" % fn
         if exists( fn ):
             found = 1
 
     # check in hierarchy root
     if not found:
-        fn = joinpath( opts.root, tfn )
+        fn = join( opts.root, tfn )
         if opts.verbose: print "  looking in %s" % fn
         if exists( fn ):
             foundInRoot = 1
@@ -1385,7 +1431,7 @@ def readTemplate( tfn ):
             curatorPath = os.environ[ 'CURATOR_TEMPLATE' ]
             pathlist = string.split( curatorPath, os.pathsep )
             for p in pathlist:
-                fn = joinpath( p, tfn )
+                fn = join( p, tfn )
                 if opts.verbose: print "  looking in %s" % fn
                 if exists( fn ):
                     found = 1
@@ -1416,12 +1462,12 @@ def readTemplate( tfn ):
 
     # Save templates in root, if it was requested.
     if opts.save_templates and foundInRoot == 0:
-        rootfn = joinpath( opts.root, tfn )
+        rootfn = join( opts.root, tfn )
         if opts.verbose: print "  saving template in %s" % rootfn
 
         # saving the file template
         if exists( rootfn ):
-            bakfn = joinpath( opts.root, tfn + '.bak' )
+            bakfn = join( opts.root, tfn + '.bak' )
             if opts.verbose: print "  making backup in %s" % bakfn
             import shutil
             try:
@@ -1583,7 +1629,7 @@ def clean( allimages, alldirs ):
 
     for img in allimages:
         # Delete HTML files
-        htmlfn = joinpath( opts.root, img._dir._path, img._pagefn )
+        htmlfn = join( opts.root, img._dir._path, img._pagefn )
         if exists( htmlfn ):
             if opts.verbose:
                 print "Deleting", htmlfn
@@ -1594,7 +1640,7 @@ def clean( allimages, alldirs ):
 
         # Delete thumbnails
         if img._thumbfn:
-            thumbfn = joinpath(opts.root, img._thumbfn)
+            thumbfn = join(opts.root, img._thumbfn)
             if exists( thumbfn ):
                 if opts.verbose:
                     print "Deleting", thumbfn
@@ -1605,11 +1651,11 @@ def clean( allimages, alldirs ):
                     print >> sys.stderr, "Error: deleting", thumbfn
 
     for d in alldirs:
-        files = dircache.listdir( joinpath(opts.root, d._path) )
+        files = dircache.listdir( join(opts.root, d._path) )
 
         # Delete HTML files in directories
         for f in files:
-            fn = joinpath( opts.root, d._path, f )
+            fn = join( opts.root, d._path, f )
             if f in [ dirindex_fn, allindex_fn, allcidx_fn,
                       sortindex_fn, css_fn ] or \
                f.startswith( 'trackindex-' ):
@@ -1643,10 +1689,10 @@ def imageSrc( cd, image, xtra='' ):
     assert(image._filename)
     if image._size:
         (w, h) = image._size
-        iss = '<img src="%s" width="%d" height="%d" alt="%s" %s>' % \
+        iss = '<img src="%s" width="%d" height="%d" alt="%s" %s />' % \
               (urlquote(rel(image._filename, cd)), w, h, image._base, xtra)
     else:
-        iss = '<img src="%s" alt="%s" %s>' % \
+        iss = '<img src="%s" alt="%s" %s />' % \
               (urlquote(rel(image._filename, cd)), image._base, xtra)
 
     return iss
@@ -1774,11 +1820,14 @@ def dirnav( cd, dir, rootname="(root)", dirsep=dirnavsep ):
 
     comps = []
     for d in dirs:
-        f = urlquote(joinpath(rel(d._pagefn, cd)))
+        f = urlquote(join(rel(d._pagefn, cd)))
         if d._parent == None:
             name = rootname
+        elif d._attrfile and d._attrfile.get_def("title"):
+            name = d._attrfile.get_def("title")
         else:
             name = d._basename
+
         comps.append('<a href="%s">%s</a>' % (f, name))
 
     return string.join(comps, '\n%s\n' % dirsep)
@@ -1918,11 +1967,11 @@ HR.sephr { background-color: black; height: 1px; width: 90%; }
     text-align: right;
     white-space: nowrap;
 }
-.settingstitle { 
+.settingstitle {
     font-size: xx-small;
-    font-weight: bold; 
+    font-weight: bold;
 }
-.settings {     
+.settings {
     font-size: xx-small;
 }
 
@@ -2089,7 +2138,7 @@ if len(image._altrepns) > 0:
     print \"Alternative representations:\"
     for rep in image._altrepns.keys():
         print '<a href=\"%s\">%s</a>&nbsp;' % \
-            (urlquote(rel(joinpath(image._dir._path, \
+            (urlquote(rel(join(image._dir._path, \
                                    image._altrepns[ rep ]), cd)), rep)
     print '<p>'
 -->
@@ -2161,7 +2210,12 @@ fallbackTemplates[ 'template-dirindex' ] = \
 if len( dir._subdirs ) > 0:
     print '<h3>Sub-directories:</h3>'
     print '<ul>'
-    for d in dir._subdirs:
+
+    # sort subdirs by time
+    subdirs = list(dir._subdirs)
+##    subdirs.sort(Dir_cmpdates)
+
+    for d in subdirs:
         print '<li><a href=\"%s\">%s</a></li>' % \
             ( rel(d._pagefn,cd), d._basename )
     print '</ul><p>'
@@ -2287,131 +2341,146 @@ if len(allimages) > 0:
 # MAIN
 #===============================================================================
 
-#-------------------------------------------------------------------------------
-#
 def main():
-    #
-    # options parsing
-    #
+    import optparse
+    parser = optparse.OptionParser(__doc__.strip(), version=__version_pr__)
+    parser.add_option('--help-script', action='store_true',
+                      help="show scripting environment documentation.")
+    parser.add_option('-v', '--verbose', action='store_true', dest="verbose",
+                      help="run verbosely (default)")
+    parser.add_option('-q', '--quiet', action='store_false', dest="quiet",
+                      default=True, help="run quietly (turns verbosity off)")
+    parser.add_option('--no-links', action='store_true',
+                      help="don't make links to HTML directory indexes")
 
-    # Options declaration
-    optmap = [
-        ( 'help', 'h', "show detailed help message." ),
-        ( 'help-script', None, "show scripting environment documentation." ),
+    parser.add_option('--use-repn', action='store', help="""Don't
+                      generate an image page if there is no base file (i.e. a
+                      file without an alternate repn suffix. The default
+                      selection algorithm is to choose 1) the first of the
+                      affinity repn which is an image file (see repn-affinity
+                      option), 2) the first of the base files which is an image
+                      file, 3) (optional) the first of the alternate
+                      representations which is an image file.  This option adds
+                      step (3).""")
 
-        ( 'version', 'V',
-          "prints version." ),
+    parser.add_option('--repn-affinity', action='store', help="""Specifies
+                      a comma separated list of regular expressions to match for
+                      alt.repn files and file extensions to prefer when
+                      searching for a main image file to generate a page for
+                      (e.g. \"\.jpg,--768\..*,\.gif\".""")
 
-        ( 'verbose', 'v', "run verbosely (default)" ),
-        ( 'quiet', 'q', "run quietly (turns verbosity off)" ),
+    parser.add_option('-t', '--templates', action='store', help="""specifies the
+                      directory where to take templates from (default:
+                      root). This takes precedence over the CURATOR_TEMPLATE
+                      environment variable AND over the root""")
 
-        ( 'no-links', None, "don't make links to HTML directory indexes" ),
+    parser.add_option('--rc', action='store', help="""specifies an
+                      additional global file to include and run in the page
+                      environment before expanding the templates.  This can be
+                      used to perform global initialization and customization of
+                      template variables.  The file template-rc.py is searched
+                      in the same order as for templates and is executed in that
+                      order as well.  Note that output when executing this goes
+                      to stdout.""")
 
-        ( 'use-repn', None, """Don't generate an image page if there is no
-        base file (i.e. a file without an alternate repn suffix. The default
-        selection algorithm is to choose 1) the first of the affinity repn which
-        is an image file (see repn-affinity option), 2) the first of the base
-        files which is an image file, 3) (optional) the first of the alternate
-        representations which is an image file.  This option adds step (3)."""),
+    parser.add_option('--rccode', action='store', help="""specifies
+                      additional global init code to run in the global
+                      environment.  This can be used to parameterize the
+                      templates from the command line (see option --rc).""")
 
-        ( 'repn-affinity=', None, """Specifies a comma separated list of regular
-        expressions to match for alt.repn files and file extensions to prefer
-        when searching for a main image file to generate a page for
-        (e.g. \"\.jpg,--768\..*,\.gif\".""" ),
 
-        ( 'templates=', 't', """specifies the directory where to take templates
-        from (default: root). This takes precedence over the CURATOR_TEMPLATE
-        environment variable AND over the root""" ),
+    parser.add_option('--save-templates', action='store', help="""saves
+                      the template files in the root of the hierarchy.  Previous
+                      copies, if existing and different from the current
+                      template, are moved into backup files.  This can be useful
+                      for keeping template files around for future regeneration,
+                      or for saving a copy before editing.""")
 
-        ( 'rc=', None, """specifies an additional global file to include and run
-        in the page environment before expanding the templates.  This can be
-        used to perform global initialization and customization of template
-        variables.  The file template-rc.py is searched in the same order as for
-        templates and is executed in that order as well.  Note that output when
-        executing this goes to stdout.""" ),
+    parser.add_option('-k', '--ignore-errors', action='store_true',
+                      help="ignore errors in templates")
 
-        ( 'rccode=', None, """specifies additional global init code to run in
-         the global environment.  This can be used to parameterize the templates
-         from the command line (see option --rc).""" ),
+    parser.add_option('-I', '--ignore-pattern', action='store',
+                      help="regexp to specify image files to ignore")
 
-        ( 'save-templates', None, """saves the template files in the root of the
-        hierarchy.  Previous copies, if existing and different from the current
-        template, are moved into backup files.  This can be useful for keeping
-        template files around for future regeneration, or for saving a copy
-        before editing.""" ),
+    parser.add_option('--htmlext', action='store',
+                      help="specifies html files extension (default: '.html')")
 
-        ( 'ignore-errors', 'k', "ignore errors in templates" ),
+    parser.add_option('--attrext', action='store', help="""specifies
+                      attributes files extension (default: '.desc')""")
 
-        ( 'ignore-pattern=', 'I', "regexp to specify image files to ignore" ),
+    parser.add_option('--thumb-sfx', action='store', help="""specifies the
+                      thumbnail alt.repn. suffix (default: 'thumb.jpg')""")
 
-        ( 'htmlext=', None,
-          "specifies html files extension (default: '.html')" ),
-        ( 'attrext=', None,
-          "specifies attributes files extension (default: '.desc')" ),
-        ( 'thumb-sfx=', None,
-          "specifies the thumbnail alt.repn. suffix (default: 'thumb.jpg')" ),
+    parser.add_option('-p', '--separator', action='store', help="""specify the
+                      image basename separator from the suffix and extension
+                      (default: --)""")
 
-        ( 'separator=', 'p', """specify the image basename separator from the
-        suffix and extension (default: --)""" ),
+    parser.add_option('-C', '--copyright', action='store',
+                      help="""specifies a copyright notice to include in image
+                      conversions""")
 
-        ( 'copyright=', 'C',
-          "specifies a copyright notice to include in image conversions" ),
+    group = optparse.OptionGroup(\
+        parser, "Conversion tools",
+        "Selects options related to conversion tools.")
 
-        ( 'magick-path=', None, "specify imagemagick path to use" ),
-        ( 'old-magick', None, "use old imagemagick features (default)" ),
-        ( 'new-magick', None, "use new imagemagick features" ),
-        ( 'no-magick', None, "disable using imagemagick" ),
+    group.add_option('--magick-path', action='store', metavar="PATH",
+                     help="specify imagemagick path to use")
 
-        ( 'thumb-size=', 's',
-          "specifies size in pixels of thumbnail largest side" ),
-        ( 'thumb-force', 'h',
-          "regenerate and xoverwrite existing thumbnails" ),
-        ( 'thumb-quality=', 'Q', """specify quality for thumbnail conversion
-        (see convert(1))""" ),
+    group.add_option('--old-magick', action='store_true',
+                     help="use old imagemagick features (default)")
 
-        ( 'fast', 'X', """disables some miscalleneous slow checks, even if the
-        consistency can be shaken up. Don't use this, this is a debugging
-        tool""" ),
+    group.add_option('--new-magick', action='store_false',
+                     dest="old_magick", help="use new imagemagick features")
 
-        ( 'clean', None, """remove all files generated by curator.  Curator
-        exits after clean up.""" ),
+    group.add_option('--no-magick', action='store_true',
+                     help="disable using imagemagick (disable conversions)")
+    # FIXME remove this option at some point
 
-        ( 'out-along', 'D',
-          "Put outputs along with files (default)." ),
-        ( 'out-subdirs', 'S',
-          "Put outputs in subdirectories of the directories." ),
-        ( 'out-onedir', 'O',
-          "Put all outputs in a single output subdirectory." ),
-        ]
+    group.add_option('--pil', action='store_true', help="""use the Python
+                      Imaging Library (PIL) instead of the Imagemagick
+                      tools.""")
+    parser.add_option_group(group)
 
-    def opt_translate(opt):
-        o = opt[0]
-        if o[-1] == '=': # option takes an argument?
-            o = o[:-1]
-        return translate_longopt( o )
+    parser.add_option('-s', '--thumb-size', action='store',
+                      help="specifies size in pixels of thumbnail largest side")
 
-    global wsre
-    wsre = re.compile( '\s+', re.MULTILINE )
-    def del_ws( t ):
-        return re.sub( wsre, ' ', t )
+    parser.add_option('-F', '--thumb-force', action='store_true',
+                      help="regenerate and xoverwrite existing thumbnails")
 
-    optmapb = []
-    for o in optmap:
-        optmapb.append( ( o[0], o[1], del_ws(o[2]) ) )
+    parser.add_option('-Q', '--thumb-quality', action='store', help="""specify
+                      quality for thumbnail conversion (see convert(1))""")
 
-    optmap = optmapb
+    parser.add_option('-X', '--fast', action='store_true', help="""disables some
+                      miscalleneous slow checks, even if the consistency can be
+                      shaken up. Don't use this, this is a debugging tool""")
+
+    parser.add_option('-l', '--ignore-links', action='store_true',
+                      help="Ignore symbolic links to image files.")
+
+    parser.add_option('--clean', action='store_true', help="""remove all
+                      files generated by curator.  Curator exits after clean
+                      up.""")
+
+    group = optparse.OptionGroup(\
+        parser, "Output method",
+        "Selects where the output files will be located .")
+
+    group.add_option('-D', '--out-along', action='store_true',
+                     help="Put outputs along with files (default).")
+
+    group.add_option('-S', '--out-subdirs', action='store_true',
+                     help="Put outputs in subdirectories of the directories.")
+
+    group.add_option('-O', '--out-onedir', action='store_true',
+                     help="Put all outputs in a single output subdirectory.")
+    parser.add_option_group(group)
+
+    # FIXME eventually make it use the full power of optparse
+    # type conversions
+    # aliases
 
     global opts
-    opts = OptionDummy( map( opt_translate, optmap ) )
-    parser = FancyGetopt( optmap )
-    parser.set_negative_aliases({'quiet': 'verbose'})
-    parser.set_negative_aliases({'new-magick': 'old-magick'})
-
-    try:
-        args = parser.getopt( args=sys.argv[1:], object=opts )
-    except:
-        print >> sys.stderr, "Error: argument error. Use --help for more info."
-        sys.exit(1)
+    opts, args = parser.parse_args()
 
     if len(args) == 0:
         opts.root = os.getcwd()
@@ -2454,20 +2523,22 @@ def main():
     #
     # Validate options.
     #
-    print "====> validating options"
-
-    if opts.version:
-        print "%s  %s" % ( basename( sys.argv[0] ), __version__[1:-2] )
-        sys.exit(1)
-
-    if opts.help:
-        for i in parser.generate_help( __doc__ ):
-            print i
-        sys.exit(1)
+    if opts.quiet: print "====> validating options"
 
     if opts.help_script:
         print generateScriptHelp()
         sys.exit(1)
+
+    if opts.pil:
+        global PilImage
+        try:
+            import Image as PilImage
+        except ImportError, e:
+            try:
+                import PIL.Image as PilImage
+            except ImportError, e:
+                raise SystemExit(\
+                "Error: you said to use PIL but PIL seems not to be installed.")
 
     if opts.templates:
         opts.templates = os.path.expanduser( opts.templates )
@@ -2525,7 +2596,7 @@ def main():
     allcidx_fn = "allindex" + cidxext
     trackindex_fn = "trackindex-%s" + opts.htmlext
     sortindex_fn = "sortindex" + opts.htmlext
-    css_fn = 'core-style.css'
+    css_fn = 'style.css'
 
     global hor_sep, ver_sep
     hor_sep = "&nbsp;&nbsp;\n"
@@ -2548,7 +2619,7 @@ def main():
     # Find and process list of images, reading necessary information for each
     # image.
     #
-    print "====> gathering image list and attributes files"
+    if opts.quiet: print "====> gathering image list and attributes files"
 
     rootdir = Dir( "", None, opts.root )
 
@@ -2557,7 +2628,7 @@ def main():
     #
     def prepend(path, pfx):
         (d, f) = os.path.split(path)
-        return joinpath(d, pfx, f)
+        return join(d, pfx, f)
 
     allimages = rootdir.getAllImages()
     alldirs = rootdir.getAllDirs()
@@ -2569,12 +2640,12 @@ def main():
         trackindex_fns[t] = trackindex_fn % t
 
     def compDirName(dir):
-        dir._pagefn = joinpath(dir._path, dirindex_fn)
+        dir._pagefn = join(dir._path, dirindex_fn)
     rootdir.visit(compDirName)
 
     for i in allimages:
-        i._pagefn = joinpath(i._dir._path, i._base + opts.htmlext)
-        i._thumbfn = joinpath(i._dir._path,
+        i._pagefn = join(i._dir._path, i._base + opts.htmlext)
+        i._thumbfn = join(i._dir._path,
                               i._base + opts.separator + opts.thumb_sfx)
 
     if opts.out_subdirs:
@@ -2600,35 +2671,35 @@ def main():
     elif opts.out_onedir:
         od = 'html'
 
-        allindex_fn = joinpath(od, allindex_fn)
-        allcidx_fn = joinpath(od, allcidx_fn)
-        sortindex_fn = joinpath(od, sortindex_fn)
-        css_fn = joinpath(od, css_fn)
+        allindex_fn = join(od, allindex_fn)
+        allcidx_fn = join(od, allcidx_fn)
+        sortindex_fn = join(od, sortindex_fn)
+        css_fn = join(od, css_fn)
         for t in tracks:
-            trackindex_fns[t] = joinpath(od, trackindex_fns[t])
+            trackindex_fns[t] = join(od, trackindex_fns[t])
 
         def prependDirVisitor(dir):
-            dir._pagefn = joinpath(od, dir._pagefn)
+            dir._pagefn = join(od, dir._pagefn)
         rootdir.visit(prependDirVisitor)
 
         for i in allimages:
-            i._pagefn = joinpath(od, i._pagefn)
-            i._thumbfn = joinpath(od, i._thumbfn)
+            i._pagefn = join(od, i._pagefn)
+            i._thumbfn = join(od, i._thumbfn)
 
     #
     # If asked to clean, clean and exit.
     #
     if opts.clean:
-        print "====> cleaning up generated files"
+        if opts.quiet: print "====> cleaning up generated files"
 
         clean( allimages, alldirs )
-        print "====> done."
+        if opts.quiet: print "====> done."
         sys.exit(0)
 
     #
     # Read template files.
     #
-    print "====> templates input and compilation"
+    if opts.quiet: print "====> templates input and compilation"
 
     global templates
     templates = readTemplates()
@@ -2636,7 +2707,7 @@ def main():
     #
     # Thumbnail generation.
     #
-    print "====> thumbnail generation and sizes computation"
+    if opts.quiet: print "====> thumbnail generation and sizes computation"
 
     for img in allimages:
         img.generateThumbnail()
@@ -2644,7 +2715,7 @@ def main():
     #
     # Execute global rc file.
     #
-    print "====> executing global rc file"
+    if opts.quiet: print "====> executing global rc file"
     envir = {}
     envir.update( globals() )
     envir.update( locals() )
@@ -2653,52 +2724,53 @@ def main():
     #
     # Output directory indexes
     #
-    print "==> directory index generation"
+    if opts.quiet: print "==> directory index generation"
 
     def walkDirsForIndex( dir ):
         # this does not do make the link for existing dirindex
         if dir.hasImages() == 1:
             envir['dir'] = dir
-            print "generating dirindex", dir._pagefn
+            if opts.quiet: print "generating dirindex", dir._pagefn
             generatePage( dir._pagefn, 'dirindex', envir )
 
-            lnfn = joinpath(opts.root, dir._path, index_fn)
+            lnfn = join(opts.root, dir._path, index_fn)
             if not ( opts.no_links or opts.out_onedir ) and \
                    not exists(lnfn) and not islink(lnfn):
-                os.symlink(rel(dir._pagefn, dir._path), lnfn)
+                if hasattr(os, 'symlink'):
+                    os.symlink(rel(dir._pagefn, dir._path), lnfn)
     rootdir.visit(walkDirsForIndex)
 
     #
     # Output track indexes HTML
     #
-    print "==> track index generation"
+    if opts.quiet: print "==> track index generation"
 
     for track in trackmap.keys():
         fn = trackindex_fns[track]
         envir['dir'] = rootdir
         envir['track'] = track
-        print "generating trackindex", fn
+        if opts.quiet: print "generating trackindex", fn
         generatePage( fn, 'trackindex', envir )
 
     #
     # Output global index HTML file and summary text file.
     #
-    print "==> global index generation"
+    if opts.quiet: print "==> global index generation"
 
     envir['dir'] = rootdir
-    print "generating allindex", allindex_fn
+    if opts.quiet: print "generating allindex", allindex_fn
     generatePage( allindex_fn, 'allindex', envir )
-    print "generating sortindex", sortindex_fn
+    if opts.quiet: print "generating sortindex", sortindex_fn
     generatePage( sortindex_fn, 'sortindex', envir )
-    print "generating summary", allcidx_fn
+    if opts.quiet: print "generating summary", allcidx_fn
     generateSummary( allcidx_fn, allimages )
-    print "generating css file", css_fn
+    if opts.quiet: print "generating css file", css_fn
     generatePage( css_fn, 'css', envir )
 
     #
     # Output image HTML files
     #
-    print "====> image page generation"
+    if opts.quiet: print "====> image page generation"
 
     global walkDirsForImages
     def walkDirsForImages( dir ):
@@ -2707,13 +2779,13 @@ def main():
         for img in dir._images:
             envir['dir'] = dir
             envir['image'] = img
-            print "generating image page", img._pagefn
+            if opts.quiet: print "generating image page", img._pagefn
             generatePage( img._pagefn, 'image', envir )
 
     walkDirsForImages( rootdir )
 
     # signal the end
-    print "====> done."
+    if opts.quiet: print "====> done."
 
 
 # Run main if loaded as a script
@@ -2728,6 +2800,6 @@ if __name__ == "__main__":
 
 # split stuff that could totally be in the includes.py file
 
-# remove table bullshit when it all works
+# remove table b.s. when it all works
 
 # make it work with CSS

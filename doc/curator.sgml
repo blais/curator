@@ -137,7 +137,6 @@ manpage.1: manpage.sgml
       
       <varlistentry>
         <term><option>--quiet</option>
-              <option>--silent</option>
               <option>-q</option></term>
         <listitem>
           <para>run quietly (turns verbosity off)
@@ -215,11 +214,10 @@ manpage.1: manpage.sgml
       </varlistentry>
       
       <varlistentry>
-        <term><option>--force-html</option>
+        <term><option>--thumb-force</option>
               <option>-F</option></term>
         <listitem>
-          <para>generate and overwrite html (i.e. forces indexes and
-                imagepages)
+          <para>regenerate and overwrite existing thumbnails
           </para>
         </listitem>
       </varlistentry>
@@ -475,7 +473,7 @@ manpage.1: manpage.sgml
   <refsect1>
     <title>SEE ALSO</title>
 
-    <para>For more information about the program and it's capabilities are
+    <para>For more information about the program and its capabilities are
     described in the --help output.</para>
 
   </refsect1>
@@ -483,7 +481,7 @@ manpage.1: manpage.sgml
     <title>AUTHOR</title>
 
     <para><command>&dhpackage;</command> was written by 
-      Martin Blais &lt;blais@iro.umontreal.ca&gt;
+      Martin Blais &lt;blais@furius.ca&gt;
       and may be downloaded directly from
       http://curator.sourceforge.net/</para>
 

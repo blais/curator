@@ -1,0 +1,300 @@
+jBrout
+======
+
+To: manatlan@free.fr
+
+Salut Manatlan
+
+I just saw this on the Python Daily URL:
+
+  jBrout 0.2 (Default branch) ["jBrout is a photo manager. It can manage
+  albums... and photos, tag photos with IPTC keywords, use... internal JPEG
+  thumbnails, add comments to photos... and albums, losslessly rotate JPEG files
+  and... internal JPEG thumbnails, and use EXIF info. It... uses plugins to add
+  a variety of features such as... exporting to HTML, acting like an HTTP
+  server, and... exporting to email. It works without a database,... and has
+  been tested with a collection of over... 20,000 photos. ... ... ... License:
+  GNU..."]
+
+Great stuff!  I'm the author of curator, a command-line tool to build HTML image
+galleries in Python (http://curator.sf.net), and I'm also very zealous on how I
+organize my photographs for long-time storage and organization.  The process of
+how I deal with my photos has evolved and stabilized a great deal over time, and
+I've been wanting to find something like jBrout (or make one) for a while.  I
+was hoping for Picasa to come to Linux or Mac one day... now I will try jBrout!
+Also, I wanted to implement IPIC comments instead of my sucky text file system,
+I know where to look now!
+
+Anyway, I thought I would share with you my process, hopefully some of the
+lessons I learned over the years can help you determine or prioritize some of
+jBrout features.  I would be happy to contribute some of my command-line tools
+to your project as well (they're not published).
+
+The Process
+-----------
+
+The goal of my process is to process a batch of photos, say, from a few weeks
+holiday, to organize the photos in directories, name them in a unique way (so I
+can refer and search them easily from my backups with a reference number),
+select the ones I want to publish, and then generate browsable sized versions
+with a copyright and/or watermark embedded in the photograph.  Eventually, those
+photos go to a DVD-ROM archive and I delete them from my computer (I have too
+many, and those which are interesting go to my blog).
+
+Also, some of the photos are put on a travel journal, and a larger list of
+photos are published to a temp directory on my server to share with the people
+that were present on the day of shooting.
+
+Here is what I currently do (which is not great, considering I use a variety of
+cmdline tools and this would be better done in a single application):
+
+
+
+Upload
+~~~~~~
+
+I upload the photo files on my computer, in a new directory.  I use usb-storage
+and copy the files by hand, but I always do the same thing: copy all the photos
+to a single new directory, always in the same place (/home/blais/p/camera).
+
+
+Auto-Rotation
+~~~~~~~~~~~~~
+
+I apply ``jhead -autorot`` to losslessly rotate the photos according to the
+Orientation EXIF field.  This helps tremendously reduce problems if you're
+editing photos and have to create thumbnails from different versions of the
+photo. I cannot remember a specific case, but I know that in many instances I
+had difficulties in process photos because the rotation was not applied.
+
+:Lesson: Baking the auto-rotation in the files (losslessly) is important and
+	 must be applied early.
+
+
+Rename to Unique Name / Identifier
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- I run a script (camtools-rename) which looks at the EXIF field and renames the
+  photos in the following format:  YYYY-MM-DD.hhmmssxx.jpg (where 'xx' is
+  normally zero, except when in burst mode the camera shoots many images
+  per-second and sometimes I need those numbers for multiple shots).  A real
+  example:
+
+      ...
+      2005-08-10.08585800.jpg
+      2005-08-10.08592800.jpg
+      2005-08-10.09113000.jpg
+      2005-08-10.09121100.jpg
+      2005-08-10.09184300.jpg
+      2005-08-10.09185600.jpg
+      ...
+
+  (In reality, I've been using something like 2005-08-10.091856.jpg and
+  2005-08-10.091856-001.jpg but it's not uniform, I've been meaning to change to
+  the format described above for a long time, and it would be adequate for all
+  the needs I've ever had).
+
+Note: it is important to choose a name that allows for multiple versions of the
+same photograph, since often the user will want to edit the photo (crop,
+process) and reduce as well, but to keep the original.  I use the following
+convention (which curator supports):
+
+      2005-08-10.09121100.jpg            original
+      2005-08-10.09121100--thumb.jpg	 thumbnail
+      2005-08-10.09121100--browse.jpg	 reduced version for web browser
+      2005-08-10.09121100--ddr1.jpg	 touched up
+      2005-08-10.09121100--ddr2.jpg	 touched up (another...)
+
+
+:Lesson: Allow the user to customize the format of his photographs to his liking
+	 (if I cannot customize I cannot adapt to my large set of photos on
+	 DVD-ROM and thus I cannot use jBrout, I suspect other people have the
+	 same problem).
+
+:Lesson: In the rename process, allow for a field that is smaller than seconds
+	 (a sequence number).
+
+
+Protect
+~~~~~~~
+
+I hate losing my original files, so I chmod them to read-only (for user, group
+and others) at this point.
+
+
+Apply a Time Offset (optional)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Sometimes, I need to apply a time offset to the EXIF times of a set of
+photographs, because my camera had not been adjusted for the timezone and I
+started taking photos (this happens so often...), or the time was simply
+incorrect due to the battery failing (rare but possible).  This has happened
+often enough that I think it should be supported in decent photo organizing
+software, because it can be a real pain in the butt to do by hand.
+
+Also, note that sometimes I will realize the time is incorrect during my trip,
+and will fix the time on the camera at some point.  Thus I have to offset only
+some and not all of the photos.
+
+:Lesson: Allow the user to specify the time of a photograph, compute the offset
+	 from that and the time in the photograph (this is your UI, you don't
+	 want the user to have to compute a time offset in his head) and apply a
+	 time offset to a set of photographs (maybe not all).
+
+I currently use ``jhead`` for that purpose.
+
+
+Organize Photos
+~~~~~~~~~~~~~~~
+
+Depending on the situation, this takes two forms, which are often mixed:
+
+1. I go through the list of photos, and put the photo lists in "collections",
+   which are then used to separate the photos in subdirectories.  I used to do
+   this by hand, building lists of photos in a text file and running a simple
+   shell command to create the directories and move the photos there, but I have
+   been using ``gqview`` collections to do that for a while.
+
+:Lesson: let the user select photos by hand for organization, photos have to
+   	 be put in groups and subgroups (directories).
+
+2. I automatically segment the set of photos using time gaps in the sequence.
+   Essentially, my program takes the list of new photos, sorts them according to
+   time, looks for time gaps of a certain size and uses those to separate the
+   photos in sets (script: camtools-split-gap).
+
+   This is interesting, as it works pretty well most of the time.  It prepares my
+   photos in subdirectories that are relevant, and then often I only have to
+   rename the directories.
+
+:Lesson: Time gap splitting is a really useful feature.  Let the user play
+   	 with the gap size before applying, 3 hours is a good default.
+
+
+Apply Comments
+~~~~~~~~~~~~~~
+
+I then go on to apply comments to my photos.  I use a text file format, which
+makes it difficult, but at some point in the past wrote an application that
+allowed me to generate the files automatically (I never bothered many it "good
+enough" though, and so it rotted and now I just never use it).
+
+In particular, I like to apply a "Location" field that specifies where the photo
+was taken, and a "Description" field, and sometimes a "Title" field.  Location
+can often be applied in batch, on a set of photos.
+
+This is a difficult to get right I think
+
+- you need to let the user apply the same comment to many files (or to have the
+  same comment apply as default as the
+
+- if the user is trying to be consistent, you need a way to ensure that all the
+  comment requirements have been filled, e.g. answer the question: did I add a
+  Location field to all my photos?
+
+- One of the things that worked well at some point is to keep the defaults from
+  the last photographs when applying the comments one by one.
+
+Now, I have less patience than I used to, and I only apply comments on the
+photos I publish.
+
+:Lesson: Adding comments should be doable in batches.
+
+:Lesson: Adding comments must be easy
+
+:Question: IPTC comments are the way to go (having multiple files sucks) but how
+	   do you have the same comments for the different versions of the same
+	   photos?  For example, the reduced version should have the same
+	   comments as the original file...  I don't know how to ensure that in
+	   a reliable way.  Maybe make the IPTC comments on the original file
+	   the master and always replicate the comments to the derived versions.
+
+
+Select for Publish
+~~~~~~~~~~~~~~~~~~
+
+At this point, I will usually go through the photos one more time and select the
+4-20 best ones out of hundreds, and those will get published.  I have a script
+that can find an copy the photos from a simple text list but nowadays I seem to
+just use ``gqview`` collections instead.
+
+:Lesson: It is important to let the user select photos for non-organizational
+	 purposes, like the "Star" in Picasa, let the user create lists of
+	 photos.
+
+:Lesson: Photos move, if you assume photo names are unique, store only the
+	 basename of the photos in the list, and not the full path.  I've had to
+	 sed or hand-edit my gqview collections because they use full paths,
+	 this sucks.
+
+
+Reduction
+~~~~~~~~~
+
+At this point, I apply a reduction in size to my photographs
+(camtools-process). I create a new file, with a slightly modified name, which is
+meant to be browseable on any computer:
+
+    2005-08-10.09121100.jpg ...becomes...  2005-08-10.09121100--browse.jpg
+
+I make it so that the longest size is 768 pixels.  The point is that those
+reduced versions are the ones I browse on my archives (using curator HTML
+galleries) and I also use them on my travel journal/blog site.
+
+The reduction process must be customizable, because the user might want to do
+some custom operations at that point.  For example, I apply a copyright notice
+to all photographs.
+
+:Lesson: If you support reduction, allow the user to customize how it is done,
+	 and select a naming convertion that preserves the unique identifier of
+	 the original.
+
+
+HTML Generation
+~~~~~~~~~~~~~~~
+
+The final step is to generate HTML pages that wrap the browseable versions of my
+photos.  
+
+I do this just before making my backups, but I also use this to publish the
+photos on my server in a private temporary directory that is shared for a few
+weeks with the people that were present at the event, so they can send my lists
+of desired shots (the unique numbers) that I can send them later (the files are
+large, I have a 6MP camera, and so I only upload the originals for what they ask
+me later).
+
+The most important thing here is that HTML can be viewed on any platform, is an
+open format and is likely to be supported for many years.  HTML galleries are
+not the best (and certainly not curator's) but they will be working in 10 years,
+I will still be able to find my old photos.  This is extremely important.
+
+There are too many issues to list here, see curator for a list of features, or
+other similar software.
+
+:Lesson: Generating HTML for backups is an important feature.
+
+:Lesson: On the generated galleries, although you must be viewing an image size
+	 that can fit on any computer (max 768 pixels side), there must be a
+	 link to originals (thus you, of a professional printer can easily just
+	 right-click and save the original for printing, right from the
+	 browser).
+
+
+Support Movies
+~~~~~~~~~~~~~~
+
+I find that in my image galleries it is difficult to find the little movies that
+some of the smaller cameras support.  They're not so important, but it is
+annoying when you're looking for them.  If there was a way to extract some
+images from the movie and then include them in the HTML gallery, that would be
+convenient.  I have no solution for this, this is an ongoing problem (but I
+don't make digicam movies often anyway).
+
+
+
+Allright, just some ideas jotted down on a friday morning, I have to get to
+work now...
+
+Thanks for making jBrout.
+
+cheers,

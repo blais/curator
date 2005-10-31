@@ -36,7 +36,7 @@ Copyright &copy; %d Martin Blais, Montreal, Canada.
 All Rights Reserved. Images may not be used without written permission.<BR>
 If you would like to license or use an image, please contact 
 <span class=\"copyright-email\">
-<a href=\"mailto:blais@iro.umontreal.ca\">blais@iro.umontreal.ca</a>
+<a href=\"mailto:blais@furius.ca\">blais@furius.ca</a>
 </div>
 
 """ % time.localtime()[0]

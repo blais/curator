@@ -1,0 +1,200 @@
+================
+Curator Redesign
+================
+
+:Author: Martin Blais <blais@furius.ca>
+:Date: 2004-03-23
+:Abstract:
+
+   Details and notes on the complete redesign of curator.
+
+
+Features
+========
+
+- curator generates *static web pages*.  You should be able to zip and plop the
+  resulting directory on any web server space and it should work.  No need to
+  run CGI scripts, install PHP or do any kind of webserver
+  configuration. curator output should work on any of the free servers.  This is
+  also a great solution for archiving: burning the result on a CD or DVD will
+  allow you to view your pictures direct from the media, just point your browser
+  at it.
+
+- curator generates hrefs as relative links.  This allows you to simply move the
+  photos directory, and also to browse it on a webserver, or directly on your
+  local filesystem.  It is also possible to instruct curator to use a fixed URL
+  as a prefix as well;
+
+- curator has very minimal dependencies to run: PIL, or ImageMagick, which
+  allows it to work on a variety of platforms.  Once the files are generated,
+  all you need is a web browser.
+
+- multiple views: curator can generate multiple views of your photos, you can
+  make different slide-shows with the same directories, by specifying simple
+  lists of photos for each view.  Separate HTML is generated for each view.  All
+  images and thumbnails are shared.
+
+- smart image maps: the images can contain areas to move to the next and
+  previous photo in a view.  You click on the right or left portion of the image
+  itself to move in the list.
+
+- smart preprocessing: curator comes with facilities to reduce and rotate your
+  large images to a size suited for on-screen viewing.
+
+- annotation: xml files..
+
+- clean output: there are various possibilities for generating the output files
+  of curator separately from the original images;
+
+- modular architecture:
+
+  In fact, the curator program is now only a front-end that patches up the
+  modules together in the most usual order.  You could easily make your own mix
+  of modules to customize the process.
+
+- support EXIF tags:
+
+- support video?
+
+
+
+Ideas
+=====
+
+- discovery::
+
+    [dataflow]
+    input: root directory
+    output: list of images (already paired up)
+
+  Role: find input images, set location strategy for corresponding thumbnails
+  and reduced images, if necessary.
+
+.. important::
+
+   We store all paths as paths relative to the root directory.  We prepend the
+   root directory whenever we need to have real file access.
+  
+- image data::
+
+    [dataflow]
+    input: list of images
+    output: list of images w/ metadata
+  
+  Role: set location of description file and open and parse it.
+
+  E.g.: find and read XML file, open image file and read EXIF tags.
+
+- process::
+
+    [dataflow]
+    input: images, images data
+    creates: reduced images w/ copyright and all, thumbnails
+    output: reduced image, rotate, add copyright, etc.
+
+  Role: process images for reduction.
+
+- thumbproc::
+
+    [dataflow]
+    input: image, image data
+    output: thumbnail image.
+  
+  Role: produce a thumbnail from an image.
+
+
+- global data::
+
+    [dataflow]
+    input: root directory
+    output: global metadata (lists of images in tracks)
+
+- generation::
+
+    [dataflow]
+    input: list of complete images w/ metadata and thumbnail info
+    input: global metadata (lists of images in tracks)
+    output: html pages
+
+  - possibility to erase all previous html found
+
+
+.. figure:: dataflow.png
+
+   Dataflow diagram for the curator redesign.
+
+
+images:
+  is a tree of dir containing images.
+
+metadata:
+  is a map of image filename to an ElementTree data structure that can be
+  observed to get information out of it.
+
+
+
+
+Fundamental Problem:  discovery generates the description file location and the
+description file influences the browseable image.
+
+Problem: when do the thumbnails get generated?
+
+2 use cases:
+
+1. no processing, browse images directly (small images only)
+
+   a) simple direct viewing
+   b) images are the result of processing
+
+2. require originals + processing.
+
+- grouping policy
+
+``--no-thumbnails mode``: do no generate thumbnails bt link by text
+
+  - need to support this throughout
+
+- basic usage should be simple
+
+
+
+Important
+=========
+
+- preprocess should include
+  - renaming of originals
+  - grouping of originals according to date
+  - chmod ro of originals
+  - automatic separation of files into directories
+  - generation of reduced size
+  - addition of copyright to image
+
+
+- discovery
+  - should detect encrypted files
+
+- processing
+
+  - support various ways of generating:
+
+    - separate root,
+    - in-directory roots,
+    - alongside
+
+
+- great 3.0 rewrite with all features mentioned below.
+
+  - modules:
+
+    - discovery
+    - reading (exif, descriptions)
+    - process
+    - output generation
+
+- idea: to handle template, method matching id names on an object could be used
+  to contain all the code for the template, seems like a clean way to do this.
+
+- curator rewrite
+
+- idea: you could sort the index according to the creation timestamp, or also
+  according to the basenames of the files in it

@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<meta name="generator" content="Docutils 0.3.10: http://docutils.sourceforge.net/" />
+<title>Curator Redesign</title>
+<meta name="author" content="Martin Blais &lt;blais&#64;furius.ca&gt;" />
+<meta name="date" content="2004-03-23" />
+<link rel="stylesheet" href="../style.css" type="text/css" />
+</head>
+<body>
+
+<div id="project-header">
+  <a href="/"><img src="/home/furius-logo-w.png" id="logo"></a>
+  <div id="project-home"><a href="..">Project Home</a></div>
+</div>
+
+<div class="document" id="curator-redesign">
+<h1 class="title">Curator Redesign</h1>
+<table class="docinfo" frame="void" rules="none">
+<col class="docinfo-name" />
+<col class="docinfo-content" />
+<tbody valign="top">
+<tr><th class="docinfo-name">Author:</th>
+<td>Martin Blais &lt;<a class="reference" href="mailto:blais&#64;furius.ca">blais&#64;furius.ca</a>&gt;</td></tr>
+<tr><th class="docinfo-name">Date:</th>
+<td>2004-03-23</td></tr>
+</tbody>
+</table>
+<div class="abstract topic">
+<p class="topic-title first">Abstract</p>
+<p>Details and notes on the complete redesign of curator.</p>
+</div>
+<div class="section">
+<h1><a id="features" name="features">Features</a></h1>
+<ul>
+<li><p class="first">curator generates <em>static web pages</em>.  You should be able to zip and plop the
+resulting directory on any web server space and it should work.  No need to
+run CGI scripts, install PHP or do any kind of webserver
+configuration. curator output should work on any of the free servers.  This is
+also a great solution for archiving: burning the result on a CD or DVD will
+allow you to view your pictures direct from the media, just point your browser
+at it.</p>
+</li>
+<li><p class="first">curator generates hrefs as relative links.  This allows you to simply move the
+photos directory, and also to browse it on a webserver, or directly on your
+local filesystem.  It is also possible to instruct curator to use a fixed URL
+as a prefix as well;</p>
+</li>
+<li><p class="first">curator has very minimal dependencies to run: PIL, or ImageMagick, which
+allows it to work on a variety of platforms.  Once the files are generated,
+all you need is a web browser.</p>
+</li>
+<li><p class="first">multiple views: curator can generate multiple views of your photos, you can
+make different slide-shows with the same directories, by specifying simple
+lists of photos for each view.  Separate HTML is generated for each view.  All
+images and thumbnails are shared.</p>
+</li>
+<li><p class="first">smart image maps: the images can contain areas to move to the next and
+previous photo in a view.  You click on the right or left portion of the image
+itself to move in the list.</p>
+</li>
+<li><p class="first">smart preprocessing: curator comes with facilities to reduce and rotate your
+large images to a size suited for on-screen viewing.</p>
+</li>
+<li><p class="first">annotation: xml files..</p>
+</li>
+<li><p class="first">clean output: there are various possibilities for generating the output files
+of curator separately from the original images;</p>
+</li>
+<li><p class="first">modular architecture:</p>
+<p>In fact, the curator program is now only a front-end that patches up the
+modules together in the most usual order.  You could easily make your own mix
+of modules to customize the process.</p>
+</li>
+<li><p class="first">support EXIF tags:</p>
+</li>
+<li><p class="first">support video?</p>
+</li>
+</ul>
+</div>
+<div class="section">
+<h1><a id="ideas" name="ideas">Ideas</a></h1>
+<ul>
+<li><p class="first">discovery:</p>
+<pre class="literal-block">
+[dataflow]
+input: root directory
+output: list of images (already paired up)
+</pre>
+<p>Role: find input images, set location strategy for corresponding thumbnails
+and reduced images, if necessary.</p>
+</li>
+</ul>
+<div class="important">
+<p class="first admonition-title">Important</p>
+<p class="last">We store all paths as paths relative to the root directory.  We prepend the
+root directory whenever we need to have real file access.</p>
+</div>
+<ul>
+<li><p class="first">image data:</p>
+<pre class="literal-block">
+[dataflow]
+input: list of images
+output: list of images w/ metadata
+</pre>
+<p>Role: set location of description file and open and parse it.</p>
+<p>E.g.: find and read XML file, open image file and read EXIF tags.</p>
+</li>
+<li><p class="first">process:</p>
+<pre class="literal-block">
+[dataflow]
+input: images, images data
+creates: reduced images w/ copyright and all, thumbnails
+output: reduced image, rotate, add copyright, etc.
+</pre>
+<p>Role: process images for reduction.</p>
+</li>
+<li><p class="first">thumbproc:</p>
+<pre class="literal-block">
+[dataflow]
+input: image, image data
+output: thumbnail image.
+</pre>
+<p>Role: produce a thumbnail from an image.</p>
+</li>
+<li><p class="first">global data:</p>
+<pre class="literal-block">
+[dataflow]
+input: root directory
+output: global metadata (lists of images in tracks)
+</pre>
+</li>
+<li><p class="first">generation:</p>
+<pre class="literal-block">
+[dataflow]
+input: list of complete images w/ metadata and thumbnail info
+input: global metadata (lists of images in tracks)
+output: html pages
+</pre>
+<ul class="simple">
+<li>possibility to erase all previous html found</li>
+</ul>
+</li>
+</ul>
+<div class="figure">
+<img alt="dataflow.png" src="dataflow.png" />
+<p class="caption">Dataflow diagram for the curator redesign.</p>
+</div>
+<dl class="docutils">
+<dt>images:</dt>
+<dd>is a tree of dir containing images.</dd>
+<dt>metadata:</dt>
+<dd>is a map of image filename to an ElementTree data structure that can be
+observed to get information out of it.</dd>
+</dl>
+<p>Fundamental Problem:  discovery generates the description file location and the
+description file influences the browseable image.</p>
+<p>Problem: when do the thumbnails get generated?</p>
+<p>2 use cases:</p>
+<ol class="arabic simple">
+<li>no processing, browse images directly (small images only)<ol class="loweralpha">
+<li>simple direct viewing</li>
+<li>images are the result of processing</li>
+</ol>
+</li>
+<li>require originals + processing.</li>
+</ol>
+<ul class="simple">
+<li>grouping policy</li>
+</ul>
+<p><tt class="docutils literal"><span class="pre">--no-thumbnails</span> <span class="pre">mode</span></tt>: do no generate thumbnails bt link by text</p>
+<blockquote>
+<ul class="simple">
+<li>need to support this throughout</li>
+</ul>
+</blockquote>
+<ul class="simple">
+<li>basic usage should be simple</li>
+</ul>
+</div>
+<div class="section">
+<h1><a id="important" name="important">Important</a></h1>
+<ul class="simple">
+<li>preprocess should include
+- renaming of originals
+- grouping of originals according to date
+- chmod ro of originals
+- automatic separation of files into directories
+- generation of reduced size
+- addition of copyright to image</li>
+<li>discovery
+- should detect encrypted files</li>
+<li>processing<ul>
+<li>support various ways of generating:<ul>
+<li>separate root,</li>
+<li>in-directory roots,</li>
+<li>alongside</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>great 3.0 rewrite with all features mentioned below.<ul>
+<li>modules:<ul>
+<li>discovery</li>
+<li>reading (exif, descriptions)</li>
+<li>process</li>
+<li>output generation</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>idea: to handle template, method matching id names on an object could be used
+to contain all the code for the template, seems like a clean way to do this.</li>
+<li>curator rewrite</li>
+<li>idea: you could sort the index according to the creation timestamp, or also
+according to the basenames of the files in it</li>
+</ul>
+</div>
+</div>
+</body>
+</html>

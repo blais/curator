@@ -1,0 +1,20 @@
+This is a patch sent on 2004-12-27 by Jan Vroonhof <jan.vroonhof at ntlworld.com>
+I thought this could be helpful to others.
+I won't apply it just yet, I want to only work on the new curator and leave
+the current one untouched (don't want to spend time on it).
+
+Message:
+
+Hi Martin,
+
+I have been meaning to sent this for a while. Thanks a lot for
+curator.  I have been using to put pictures of my son on his
+website. However as my family kept pestering me to have the pictures
+resized to "screen size" for easier viewing (you must get the same), I have implemented that.
+
+The patch is attached. It isn't really pretty but I thought I would
+share it anyway.
+
+Again thanks a lot for this great little program and happy new year.
+
+Jan

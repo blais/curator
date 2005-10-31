@@ -1,0 +1,45 @@
+==========================
+Photos Processing Pipeline
+==========================
+
+:Author: Martin Blais <blais@furius.ca>
+:Date: 2004-09-19
+:Abstract:
+
+   Some notes taken in japan about how to organize my photo processing pipeline.
+
+1. extract
+
+   - use gphoto2 or usb
+
+2. fix times / offset: when camera times have not been set correctly
+
+   (``camtools-offset``) or jhead does this
+
+3. rename and output description file
+
+   (``camtools-rename``)
+
+4. group in directories
+
+   - cluster analysis
+   - manual moving
+
+   (``camtools-cluster``)
+
+5. set locations on all images recursively
+
+   (``camtools-setattr``)
+
+6. curator
+
+   - need directory indexes
+   - need per/location indexes
+
+7. reduce images
+
+   - browse size
+   - max screen size
+
+   (originals, browseable, maxscreen, thumb, html)
+

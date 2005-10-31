@@ -1,0 +1,600 @@
+                                                                                                                                                                                                                                                               
+--- /usr/bin/curator	2003-12-05 13:54:48.000000000 +0000
++++ /usr/local/bin/curator	2004-01-24 20:31:40.000000000 +0000
+@@ -276,8 +276,6 @@
+         return e.info
+ 
+     def dump( self ):
+-        if not opts.quiet:
+-            return None
+         print "Cache filename:", self.cachefn
+         print
+         for e in self.entries.values():
+@@ -685,7 +683,7 @@
+             self._attrfile = AttrFile( pattr )
+             self._attrfile.read()
+             if self._attrfile.keys():
+-                if opts.quiet: print "  read attributes", self._attrfile.keys()
++                print "  read attributes", self._attrfile.keys()
+ 
+         imgmap = {}
+         for f in files:
+@@ -704,7 +702,7 @@
+ 
+                 # perhaps ignore file
+                 if opts.ignore_pattern and opts.ignore_re.search( af ):
+-                    if opts.quiet: print "ignoring file", af
++                    print "ignoring file", af
+                     continue
+ 
+                 # check for separator
+@@ -735,7 +733,7 @@
+         # Detect thumbnails, imagepages, attributes files.
+         for i in imgmap.keys():
+             e = imgmap[i]
+-            if opts.quiet: print "looking for images with base '%s'" % \
++            print "looking for images with base '%s'" % \
+                   joinpath(e._dir._path, e._base)
+             e.cleanAlts()
+             if not e.selectName( joinpath( root, path ) ):
+@@ -746,7 +744,7 @@
+             img = imgmap[f]
+             img.init( self._attrfile )
+             if img._ignore:
+-                if opts.quiet: print "ignoring", img._base, "from desc file ignore tag."
++                print "ignoring", img._base, "from desc file ignore tag."
+                 continue
+             self._images.append( img )
+ 
+@@ -830,6 +828,8 @@
+         self._size = None
+         self._thumbfn = None # thumbnail filename (i.e. base--thumb.gif)
+         self._thumbsize = None
++        self._screenfn = None # screen size filename (i.e. base--screen.gif)
++        self._screensize = None
+         self._attr = None # attributes filename boolean
+         self._title = '' # to be computed upon init()
+ 
+@@ -853,7 +853,7 @@
+                 attr = AttrFile( pattr )
+                 attr.read()
+                 if attr.keys():
+-                    if opts.quiet: print "  read attributes", attr.keys()
++                    print "  read attributes", attr.keys()
+ 
+                 self._attr = attr
+ 
+@@ -903,7 +903,7 @@
+         # Detect html files, remove them in the altrepn
+         try:
+             idx = self._salts.index( opts.htmlext )
+-            if opts.quiet: print "  detected existing imagepage '%s'" % opts.htmlext
++            print "  detected existing imagepage '%s'" % opts.htmlext
+             del self._salts[idx]
+         except ValueError:
+             pass
+@@ -911,7 +911,7 @@
+         # Detect attributes files, remove them in the altrepn
+         try:
+             idx = self._salts.index( opts.attrext )
+-            if opts.quiet: print "  detected attributes file '%s'" % opts.attrext
++            print "  detected attributes file '%s'" % opts.attrext
+             self._attr = self._salts[idx]
+             del self._salts[idx]
+         except ValueError:
+@@ -920,11 +920,19 @@
+         # Detect thumb file, separate them from altrepns
+         for k in self._calts:
+             if k.startswith( opts.thumb_sfx ):
+-                if opts.quiet: print "  detected thumb file '%s'" % k
++                print "  detected thumb file '%s'" % k
+                 self._thumbfn = k
+                 self._calts.remove( k )
+                 break
+ 
++        # Detect screen file, separate them from altrepns
++        for k in self._calts:
++            if k.startswith( opts.screen_sfx ):
++                print "  detected screen file '%s'" % k
++                self._screenfn = k
++                self._calts.remove( k )
++                break
++
+     #---------------------------------------------------------------------------
+     #
+     def selectName( self, absdirname ):
+@@ -932,7 +940,7 @@
+         """Select base file (image file) for image page generation. Returns true
+         if it could find a suitable one."""
+ 
+-        if opts.quiet: print "  ", self._salts + self._calts
++        print "  ", self._salts + self._calts
+ 
+         #
+         # choose one representation for the imagepage
+@@ -953,10 +961,10 @@
+                             self._calts.remove( f )
+                             ( self._repn, self._ext ) = splitext( f )
+ 
+-                        if opts.quiet: print "  choosing affinity '%s'" % f
++                        print "  choosing affinity '%s'" % f
+                         return 1
+                     else:
+-                        if opts.quiet: print "  ignoring non-image '%s'" % f
++                        print "  ignoring non-image '%s'" % f
+ 
+         # 2) the first of the base files which is an image file
+         if opts.use_repn:
+@@ -977,12 +985,12 @@
+                 else:
+                     self._calts.remove( f )
+                     ( self._repn, self._ext ) = splitext( f )
+-                if opts.quiet: print "  choosing imagefile '%s'" % f
++                print "  choosing imagefile '%s'" % f
+                 return 1
+             else:
+-                if opts.quiet: print "  ignoring non-image '%s'" % f
++                print "  ignoring non-image '%s'" % f
+ 
+-        if opts.quiet: print "  no imagepage for base '%s'" % self._base
++        print "  no imagepage for base '%s'" % self._base
+         return 0
+ 
+     #---------------------------------------------------------------------------
+@@ -1007,54 +1015,95 @@
+         if title:
+             self._title = title
+ 
+-    #---------------------------------------------------------------------------
+-    #
++
+     def generateThumbnail( img ):
++        """Generates a thumbnail for an image.
++
++        Make it so that the longest dimension is the specified dimension."""
++        img.generateMinor(1)
+ 
++    def generateScreenImage( img ):
++        """Generates a screen size image for an image.
++
++        If the image itself already fits on the screen, then just use that.
++
++        Make it so that the dimensions fit in the specified dimension."""
++        aimgfn = joinpath( opts.root, img._filename )
++        # This really needs its own method
++        if not opts.fast:
++            img._size = imageSize(aimgfn)
++
++        # Todo should this have tolerance?
++        if img._size[0] <= opts.screen_size[0] and img._size[1] <= opts.screen_size[1]:
++            # Image it<self fits, use that
++            print "image %s fits on screen. Using that" % img._filename
++            img._screenfn = img._filename
++            img._screensize = img._size
++        else:
++            img.generateMinor(0)
++
++    #---------------------------------------------------------------------------
++    #
++    def generateMinor( img, thumb ):
+         """Generates a thumbnail for an image.
+ 
+         Make it so that the longest dimension is the specified dimension."""
+ 
+-        if not img._thumbfn:
++        if thumb:
++            name = img._thumbfn
++            quality = opts.thumb_quality
++            targetsize =  opts.thumb_size
++            force = opts.thumb_force
++        else:
++            name = img._screenfn
++            quality = opts.screen_quality
++            targetsize =  opts.screen_size
++            force = opts.thumb_force
++
++        if not name:
+             return
+ 
+         aimgfn = joinpath( opts.root, img._filename )
+         if not opts.fast:
+             img._size = imageSize(aimgfn)
+ 
+-        athumbfn = joinpath( opts.root, img._thumbfn )
++        minorfn = joinpath( opts.root, name )
+ 
+-        if opts.thumb_force:
+-            if opts.quiet: print "forced regeneration of '%s'" % img._thumbfn
+-        elif not exists(athumbfn):
+-            if opts.quiet: print "thumbnail absent '%s'" % img._thumbfn
++        if force:
++            print "forced regeneration of '%s'" % name
++        elif not exists(minorfn):
++            print "minor image  absent '%s'" % name
+         else:
+-            # Check if thumbsize has changed
++            # Check if size has changed
+             if not opts.fast:
+-                img._thumbsize = imageSize(athumbfn)
++                oldsize = imageSize(minorfn)
++                if thumb:
++                    img._thumbsize = oldsize
++                else:
++                    img._screensize = oldsize
+                 if not checkThumbSize( img._size,\
+-                                       img._thumbsize, \
+-                                       opts.thumb_size ):
+-                    if opts.quiet: print "thumbnail '%s size has changed" % img._thumbfn
++                                       oldsize, \
++                                       targetsize ):
++                    print "minor image  '%s size has changed" % name
+                     try:
+                         # Clear cache for thumbnail size.
+-                        del imageSizeCache[ athumbfn ]
++                        del imageSizeCache[ minorfn ]
+                     except:
+                         pass
+                 else:
+-                    if opts.quiet: print "thumbnail '%s' already generated (size ok)" \
+-                          % img._thumbfn
++                    print "minor image  '%s' already generated (size ok)" \
++                          % name
+                     return
+             else:
+-                if opts.quiet: print "thumbnail '%s' already generated" % img._thumbfn
++                print "minor image  '%s' already generated" % name
+                 return
+ 
+         if opts.no_magick:
+-            if opts.quiet: print "ImageMagick tools disabled, can't create thumbnail"
++            print "ImageMagick tools disabled, can't create images"
+             return
+ 
+         # create necessary directories
+-        d = dirname(athumbfn)
++        d = dirname(minorfn)
+         if not exists(d):
+             os.makedirs(d)
+             
+@@ -1062,10 +1111,13 @@
+ 
+             try:
+                 im = PilImage.open(aimgfn)
+-                im.thumbnail( (opts.thumb_size, opts.thumb_size) )
+-                im.save(athumbfn)
++                im.thumbnail( (targetsize[0], targetsize[1]) )
++                im.save(minorfn)
+ 
+-                img._thumbsize = im.size
++                if thumb:
++                    img._thumbsize = im.size
++                else:
++                    img._screensize = im.size
+             except IOError, e:
+                 raise SystemExit(\
+                     "Error: identifying file '%s'" % aimgfn + str(e))
+@@ -1076,10 +1128,10 @@
+             # FIXME check if this is a problem if not specified
+             #cmd += '-interlace NONE '
+     
+-            cmd += '-geometry %dx%d ' % ( opts.thumb_size, opts.thumb_size )
++            cmd += '-geometry %dx%d ' % ( targetsize[0], targetsize[1] )
+     
+-            if opts.thumb_quality:
+-                cmd += '-quality %d ' % opts.thumb_quality
++            if quality:
++                cmd += '-quality %d ' % quality
+     
+             # This doesn't add text into the picture itself, just the comment in
+             # the header.
+@@ -1092,9 +1144,9 @@
+             if img._ext.lower() in [ ".jpg", ".tif", ".tiff" ]:
+                 subimg = "[1]"
+     
+-            cmd += '"%s%s" "%s"' % ( aimgfn, subimg, athumbfn )
++            cmd += '"%s%s" "%s"' % ( aimgfn, subimg, minorfn )
+     
+-            if opts.quiet: print "generating thumbnail '%s'" % img._thumbfn
++            print "generating minor image '%s'" % name
+     
+             (chin, chout, cherr) = os.popen3( cmd )
+             errs = cherr.readlines()
+@@ -1108,7 +1160,7 @@
+     
+                 if subimg and \
+                        re.compile('Unable to read subimage').search(errs):
+-                    if opts.quiet: print "retrying without subimage"
++                    print "retrying without subimage"
+                     cmd = string.replace(cmd,subimg,"")
+     
+                     (chin, chout, cherr) = os.popen3( cmd )
+@@ -1121,7 +1173,12 @@
+                         print string.join(errs, '\n')
+     
+             else:
+-                img._thumbsize = imageSize(athumbfn)
++                size = imageSize(minorfn)
++                if thumb:
++                    img._thumbsize = size
++                else:
++                    img._screensize = size
++
+ 
+ 
+ #===============================================================================
+@@ -1140,7 +1197,7 @@
+             return 0 # aspect has changed, or isz rotated
+     except:
+         return 0
+-    return abs( desired - tsz[0] ) <= 1 or abs( desired - tsz[1] ) <= 1
++    return abs( desired[0] - tsz[0] ) <= 1 or abs( desired[1] - tsz[1] ) <= 1
+ 
+ 
+ #-------------------------------------------------------------------------------
+@@ -1640,6 +1697,18 @@
+                 except:
+                     print >> sys.stderr, "Error: deleting", thumbfn
+ 
++        # Delete screens
++        if img._screenfn:
++            screenfn = joinpath(opts.root, img._screenfn)
++            if exists( screenfn ):
++                if opts.verbose:
++                    print "Deleting", screenfn
++                try:
++                    os.unlink( screenfn )
++                    img._screenfn = None
++                except:
++                    print >> sys.stderr, "Error: deleting", screenfn
++
+     for d in alldirs:
+         files = dircache.listdir( joinpath(opts.root, d._path) )
+ 
+@@ -1677,7 +1746,11 @@
+ def imageSrc( cd, image, xtra='' ):
+ 
+     assert(image._filename)
+-    if image._size:
++    if image._screensize:
++        (w, h) = image._screensize
++        iss = '<img src="%s" width="%d" height="%d" alt="%s" %s>' % \
++              (urlquote(rel(image._screenfn, cd)), w, h, image._base, xtra)
++    elif image._size:
+         (w, h) = image._size
+         iss = '<img src="%s" width="%d" height="%d" alt="%s" %s>' % \
+               (urlquote(rel(image._filename, cd)), w, h, image._base, xtra)
+@@ -2012,7 +2085,10 @@
+ if image._pagefn:
+ 
+     if image._size:
+-        (w,h)=image._size
++        if image._screensize:        
++            (w,h)=image._screensize
++        else:
++            (w,h)=image._size
+         use_map = 1
+         # smart image map
+         w4 = w / 4
+@@ -2101,7 +2177,7 @@
+ if pi and pi._thumbsize:
+     pw = pi._thumbsize[0]
+ else:
+-    pw = opts.thumb_size
++    pw = opts.thumb_size[0]
+ 
+ print '<td width=\"%d\">' % pw
+ if pi:
+@@ -2150,7 +2226,7 @@
+ if ni and ni._thumbsize:
+     nw = ni._thumbsize[0]
+ else:
+-    nw = opts.thumb_size
++    nw = opts.thumb_size[0]
+ 
+ print '<td width=\"%d\">' % nw
+ if ni:
+@@ -2330,8 +2406,8 @@
+                       help="show scripting environment documentation.")
+     parser.add_option('-v', '--verbose', action='store_true', dest="verbose",
+                       help="run verbosely (default)")
+-    parser.add_option('-q', '--quiet', action='store_false', dest="quiet",
+-                      default=True, help="run quietly (turns verbosity off)")
++    parser.add_option('-q', '--quiet', action='store_false', dest="verbose",
++                      help="run quietly (turns verbosity off)")
+     parser.add_option('--no-links', action='store_true',
+                       help="don't make links to HTML directory indexes")
+ 
+@@ -2393,6 +2469,9 @@
+     parser.add_option('--thumb-sfx', action='store', help="""specifies the
+                       thumbnail alt.repn. suffix (default: 'thumb.jpg')""")
+ 
++    parser.add_option('--screen-sfx', action='store', help="""specifies the
++                      thumbnail alt.repn. suffix (default: 'screen.jpg')""")
++
+     parser.add_option('-p', '--separator', action='store', help="""specify the
+                       image basename separator from the suffix and extension
+                       (default: --)""")
+@@ -2432,6 +2511,9 @@
+     parser.add_option('-Q', '--thumb-quality', action='store', help="""specify
+                       quality for thumbnail conversion (see convert(1))""")
+ 
++    parser.add_option('--screen-quality', action='store', help="""specify
++                      quality for screen image conversion (see convert(1))""")
++
+     parser.add_option('-X', '--fast', action='store_true', help="""disables some
+                       miscalleneous slow checks, even if the consistency can be
+                       shaken up. Don't use this, this is a debugging tool""")
+@@ -2498,11 +2580,13 @@
+     if not opts.thumb_sfx:
+         opts.thumb_sfx = "thumb.jpg" # will create jpg thumbnails by default
+ 
++    if not opts.screen_sfx:
++        opts.screen_sfx = "screen.jpg" # will create jpg screens by default
+ 
+     #
+     # Validate options.
+     #
+-    if opts.quiet: print "====> validating options"
++    print "====> validating options"
+ 
+     if opts.help_script:
+         print generateScriptHelp()
+@@ -2536,6 +2620,11 @@
+     except ValueError:
+         print >> sys.stderr, "Error: Illegal thumbnail size."
+         sys.exit(1)
++    # Rest of the system requres a tuple
++    opts.thumb_size = ( opts.thumb_size ,  opts.thumb_size )
++
++    # Todo make configurable (1024x768 minus borders etc)
++    opts.screen_size = ( 900 , 568)
+ 
+     if opts.thumb_quality:
+         try:
+@@ -2544,6 +2633,13 @@
+             print >> sys.stderr, "Error: Illegal thumbnail quality."
+             sys.exit(1)
+ 
++    if opts.screen_quality:
++        try:
++            opts.screen_quality = int( opts.screen_quality )
++        except ValueError:
++            print >> sys.stderr, "Error: Illegal screen image quality."
++            sys.exit(1)
++
+     if opts.ignore_pattern:
+         # pre-compile ignore re for efficiency
+         opts.ignore_re = re.compile( opts.ignore_pattern )
+@@ -2598,7 +2694,7 @@
+     # Find and process list of images, reading necessary information for each
+     # image.
+     #
+-    if opts.quiet: print "====> gathering image list and attributes files"
++    print "====> gathering image list and attributes files"
+ 
+     rootdir = Dir( "", None, opts.root )
+ 
+@@ -2626,6 +2722,8 @@
+         i._pagefn = joinpath(i._dir._path, i._base + opts.htmlext)
+         i._thumbfn = joinpath(i._dir._path,
+                               i._base + opts.separator + opts.thumb_sfx)
++        i._screenfn = joinpath(i._dir._path,
++                              i._base + opts.separator + opts.screen_sfx)
+ 
+     if opts.out_subdirs:
+ 
+@@ -2669,16 +2767,16 @@
+     # If asked to clean, clean and exit.
+     #
+     if opts.clean:
+-        if opts.quiet: print "====> cleaning up generated files"
++        print "====> cleaning up generated files"
+ 
+         clean( allimages, alldirs )
+-        if opts.quiet: print "====> done."
++        print "====> done."
+         sys.exit(0)
+ 
+     #
+     # Read template files.
+     #
+-    if opts.quiet: print "====> templates input and compilation"
++    print "====> templates input and compilation"
+ 
+     global templates
+     templates = readTemplates()
+@@ -2686,15 +2784,16 @@
+     #
+     # Thumbnail generation.
+     #
+-    if opts.quiet: print "====> thumbnail generation and sizes computation"
++    print "====> thumbnail generation and sizes computation"
+ 
+     for img in allimages:
+         img.generateThumbnail()
++        img.generateScreenImage()
+ 
+     #
+     # Execute global rc file.
+     #
+-    if opts.quiet: print "====> executing global rc file"
++    print "====> executing global rc file"
+     envir = {}
+     envir.update( globals() )
+     envir.update( locals() )
+@@ -2703,13 +2802,13 @@
+     #
+     # Output directory indexes
+     #
+-    if opts.quiet: print "==> directory index generation"
++    print "==> directory index generation"
+ 
+     def walkDirsForIndex( dir ):
+         # this does not do make the link for existing dirindex
+         if dir.hasImages() == 1:
+             envir['dir'] = dir
+-            if opts.quiet: print "generating dirindex", dir._pagefn
++            print "generating dirindex", dir._pagefn
+             generatePage( dir._pagefn, 'dirindex', envir )
+ 
+             lnfn = joinpath(opts.root, dir._path, index_fn)
+@@ -2722,34 +2821,34 @@
+     #
+     # Output track indexes HTML
+     #
+-    if opts.quiet: print "==> track index generation"
++    print "==> track index generation"
+ 
+     for track in trackmap.keys():
+         fn = trackindex_fns[track]
+         envir['dir'] = rootdir
+         envir['track'] = track
+-        if opts.quiet: print "generating trackindex", fn
++        print "generating trackindex", fn
+         generatePage( fn, 'trackindex', envir )
+ 
+     #
+     # Output global index HTML file and summary text file.
+     #
+-    if opts.quiet: print "==> global index generation"
++    print "==> global index generation"
+ 
+     envir['dir'] = rootdir
+-    if opts.quiet: print "generating allindex", allindex_fn
++    print "generating allindex", allindex_fn
+     generatePage( allindex_fn, 'allindex', envir )
+-    if opts.quiet: print "generating sortindex", sortindex_fn
++    print "generating sortindex", sortindex_fn
+     generatePage( sortindex_fn, 'sortindex', envir )
+-    if opts.quiet: print "generating summary", allcidx_fn
++    print "generating summary", allcidx_fn
+     generateSummary( allcidx_fn, allimages )
+-    if opts.quiet: print "generating css file", css_fn
++    print "generating css file", css_fn
+     generatePage( css_fn, 'css', envir )
+ 
+     #
+     # Output image HTML files
+     #
+-    if opts.quiet: print "====> image page generation"
++    print "====> image page generation"
+ 
+     global walkDirsForImages
+     def walkDirsForImages( dir ):
+@@ -2758,13 +2857,13 @@
+         for img in dir._images:
+             envir['dir'] = dir
+             envir['image'] = img
+-            if opts.quiet: print "generating image page", img._pagefn
++            print "generating image page", img._pagefn
+             generatePage( img._pagefn, 'image', envir )
+ 
+     walkDirsForImages( rootdir )
+ 
+     # signal the end
+-    if opts.quiet: print "====> done."
++    print "====> done."
+ 
+ 
+ # Run main if loaded as a script
+

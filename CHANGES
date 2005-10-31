@@ -1,201 +1,94 @@
-# -*- mode: text -*-
-#
-# CHANGES for curator
-#
-# $Id: CHANGES 110 2003-02-06 01:22:39Z blais $
-#
+================
+CHANGES: curator
+================
+
+Current
+-------
+
+* made subdirectories sorted by time
+* applied bug fix from Andreas Tille <tillea at rki.de> for debian packaging.
+* fixed symbolic link bug found by Brian Thomason <brian.thomason@lindows.com>
+
+
+Version 2.1
+-----------
+
+* Moved image program support to the PIL. We will still support Imagemagick
+  for a while, but I think soon we'll clean this up and the default will
+  become the PIL.  This was motivated by making it work under Windows.
+* Quickly ported some stuff to Python-2.3.
+  
+
+Version 2.0.1
+-------------
+
+* Created packages using Python distutils.  The code hasn't changed apart from
+  fixing the output of the version number.
+
 
 Version 2.0
-------------------------------
+-----------
 
-  * Released, it has been working for me for a while.
-  * Added CSS and will be testing it for a while before unleashing it to the
-    world. Groar!
-
+* Released, it has been working for me for a while.
+* Added CSS and will be testing it for a while before unleashing it to the
+  world. Groar!
 
 Version 1.9
-------------------------------
+-----------
 
-   * Fixed bug with altrepns paths.
-   * Added FCache support for faster testing (copied all the code).
-   * Added options to generate either in subdirectories of the directories or
-     under a single directory for an entire hierarchy. This allows much cleaner
-     output.
-   * Major cleanup, removed stupid environments, bettered templates.
-   * Removed a lot of silly options.
+* Fixed bug with altrepns paths.
+* Added FCache support for faster testing (copied all the code).
+* Added options to generate either in subdirectories of the directories or
+  under a single directory for an entire hierarchy. This allows much cleaner
+  output.
+* Major cleanup, removed stupid environments, bettered templates.
+* Removed a lot of silly options.
 
 Version 1.3
-------------------------------
+-----------
 
-   * Applied patch from Dave Baker for HTML compatibility.
-   * More validating HTML output to HTML 4.0 myself.
+* Applied patch from Dave Baker for HTML compatibility.
+* More validating HTML output to HTML 4.0 myself.
 
 Version 1.2
-------------------------------
+-----------
 
-   * Added sorted index and templates.
-   * Fixed bug with linkImage().
+* Added sorted index and templates.
+* Fixed bug with linkImage().
 
 Version 1.1
-------------------------------
+-----------
 
-   * Added global rc file support.
-   * Added quote()/unquote() to common environment.
-   * Fixed bug with filenames with spaces (in default templates too).
-   * Fixed --force and --no bug.
-   * Support for specifying affinity
-   * (Internal) removed '--' in altrepns directly in Image()
-   * (Internal) now treating Image._thumb and Image._attr more similarly
-   * (Internal) cleaned up thumbnail filename mess
-   * (Internal) cleaned up thumbnail filename mess
+* Added global rc file support.
+* Added quote()/unquote() to common environment.
+* Fixed bug with filenames with spaces (in default templates too).
+* Fixed --force and --no bug.
+* Support for specifying affinity
+* (Internal) removed '--' in altrepns directly in Image()
+* (Internal) now treating Image._thumb and Image._attr more similarly
+* (Internal) cleaned up thumbnail filename mess
+* (Internal) cleaned up thumbnail filename mess
 
 Version 1.0.2
-------------------------------
+-------------
 
-   * Fixed bug with images not being in sorted order (was using map order).
-   * Fixed bug with multi-part images, now thumbnails are taken from [1].
-     Should I make it configurable?
-   * Changed fallback template so slightly (better navigation).
-   * Fixed empty subdirectories bug.
+* Fixed bug with images not being in sorted order (was using map order).
+* Fixed bug with multi-part images, now thumbnails are taken from [1].
+  Should I make it configurable?
+* Changed fallback template so slightly (better navigation).
+* Fixed empty subdirectories bug.
 
 Version 1.0.1
-------------------------------
+-------------
 
-   * Very very minor bug fixes.
-   * Bug fix for EXIF JPEG's, that were not recognized by Python's imghdr.
+* Very very minor bug fixes.
+* Bug fix for EXIF JPEG's, that were not recognized by Python's imghdr.
 
 Version 1.0
-------------------------------
+-----------
 
-   * Release.
-   * Crazy weekend obsessively spitting code like a moron, plus two weeks
-     stabilizing.
-
-
-#===============================================================================
-# TODO, COMMENTS, ETC, Wishlist/ToDo todo TODO list
-#===============================================================================
-
- - for tracks, make curator able to use the basenames without the directories
-   for the picture names
-
-BIG BUG!  no-html is not the opposite of force-html, but they're implemented the same, do this!
-
- - implement lowsrc in images using thumbnails as a source (tdemarge)
-
- - write a script to copy the exif info from one jpeg file to another
-
- - write a script to extract thumbnails from jpegs which have them, this should
-   make generating thumbnails much faster
-
- - include "source: " field for archival retrieval
-
- - instructions for making a CDROM under windows on web page
-
-personal:
-
- - insure camera ffs
-
-#-------------------------------------------------------------------------------
-# long term
-#
-
- - table generator: align image to top of cells, not center (vertically)
-
- - global definitions file to be executed for each environment for all templates
-
-# merge getprop() and getattr() ?
-
-Eventually:
-
- - the images don't necessarily reside where the HTML pages are, and can be
-   scattered/organized over many different directories;
-
- - implement user-specified conversins
+* Release.
+* Crazy weekend obsessively spitting code like a moron, plus two weeks
+  stabilizing.
 
 
-# add 'next directory' functionality to script env
-
-# running surrogate programs, grab errors and print to stderr of this.
-# e.g. convert program
-
-# add reporting line or error in template
-
-# try accessing Image class... it works... but it shouldn't what can we do about
-# it?
-
-# --urls mode
-#   - only a global file, thumbnails generated locally
-#   - dependency on wget
-#   - look for desc file at URL location, then locally
-
-# support generating an HTML global index with a list of URLs away from output
-# dir. Should generate global index and image pages only. This would be a
-# special mode.
-
-# perhaps vars( class(envir) ) would solve the ugly hack for methods otherwise
-# we could bin by hand
-
-# allow placing thumbnails in an arbitrary directory.
-
-# you'll want to support adding a copyright to individual images, and other
-# types of conversions, processing
-
-# implement <convert> field to automatically make conversions (optional) the
-# code should be the same as thumbnails, the thumbnails is only a particular
-# case of this.
-
-Commands:
-
-for f in `find . -name \*.jpg ! -name \*thumb* `; do echo $f ; j=`echo $f | sed -e 's/jpg/desc/'`; echo "settings:" > $j ;  ~/curator/exif995.py $f  >>   $j ; done
-
-
-
-
-------------------------------
-
-Currently the following files are produces:
-
- in root directory:
- allindex.html
- sortindex.html
- trackindes.html
-
- in every directory including root:
- dirindex.html
- image.html
-
- It is good practice to have an index.html in each 
-directory, to give the web server a default file to 
-display. True, one could change the web server 
-default to "allindex.html, dirindex.html", but only 
-if you run your own web server.
-
- With this in mind, it would be nice if there were an 
-option to tell curator the following:
- - name the dirindex.html file in all none root
- directories 'index.html'
- - name the allindex.html file 'index.html'
- or
- name the sortindex.hml file 'index.hml'
- or
- name the trackindex.hml file 'index.hml'
- or
- name the dirindex.hml file in the root
- directory 'index.hml'
-
- References from the templates to the files should 
-take this into account and point to the right file, 
-of course.
-
- Maybe I am the only one who ran into this problem, 
-maybe not.
-
- Hope you like the idea.
-
- Regards,
- Thomas
-
-
-
-------------------------------

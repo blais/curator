@@ -1,0 +1,17 @@
+#!/bin/sh
+#
+# $Id: bashrc 218 2004-09-26 20:17:05Z blais $
+#
+# My environment initialization for this project.  This could or could not be
+# used as an example for your own settings for development.
+
+# #
+# # Temp stuff for testing curator.
+# #
+# function ranhier() {
+#     dest="$PWD/$3"
+#     cd $2 && ls -1 | random-subset $1 | random-tree-cp $dest && cd - ; 
+#     ls -R f
+# }
+
+alias curator-blais='curator --out-onedir --repn=ddr,browse '

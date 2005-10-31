@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<meta name="generator" content="Docutils 0.3.10: http://docutils.sourceforge.net/" />
+<title>Curator under Windows</title>
+<meta name="author" content="Martin Blais &lt;blais&#64;furius.ca&gt;" />
+<meta name="date" content="2003-09-16" />
+<link rel="stylesheet" href="../style.css" type="text/css" />
+</head>
+<body>
+
+<div id="project-header">
+  <a href="/"><img src="/home/furius-logo-w.png" id="logo"></a>
+  <div id="project-home"><a href="..">Project Home</a></div>
+</div>
+
+<div class="document" id="curator-under-windows">
+<h1 class="title">Curator under Windows</h1>
+<table class="docinfo" frame="void" rules="none">
+<col class="docinfo-name" />
+<col class="docinfo-content" />
+<tbody valign="top">
+<tr><th class="docinfo-name">Author:</th>
+<td>Martin Blais &lt;<a class="reference" href="mailto:blais&#64;furius.ca">blais&#64;furius.ca</a>&gt;</td></tr>
+<tr><th class="docinfo-name">Date:</th>
+<td>2003-09-16</td></tr>
+</tbody>
+</table>
+<div class="abstract topic">
+<p class="topic-title first">Abstract</p>
+<p>Instructions for using Curator under a Windows platform.</p>
+</div>
+<div class="section">
+<h1><a id="installing-prerequisites" name="installing-prerequisites">Installing Prerequisites</a></h1>
+<div class="section">
+<h2><a id="install-python" name="install-python">Install Python</a></h2>
+<ol class="arabic simple">
+<li>Get python self-install executable:
+<a class="reference" href="http://www.python.org/ftp/python/2.3/Python-2.3.exe">http://www.python.org/ftp/python/2.3/Python-2.3.exe</a></li>
+<li>Run it, it will start an installer.  Notice the location where it puts it.</li>
+</ol>
+</div>
+<div class="section">
+<h2><a id="install-the-pil" name="install-the-pil">Install the PIL</a></h2>
+<p>The Python Imaging Library is what is used to convert the files.</p>
+<ol class="arabic">
+<li><p class="first">Get pre-built binaries from:
+<a class="reference" href="http://www.pythonware.com/products/pil/">http://www.pythonware.com/products/pil/</a></p>
+<p>(the pre-built PIL for 2.3b will work for version 2.3)</p>
+</li>
+<li><p class="first">Run the downloaded install program.</p>
+</li>
+<li><p class="first">Make sure that you install it for your Python install.  The detection should
+do it automatically for you.</p>
+<p>Note: I have noticed that I could not edit the destination location when
+installing the files with the Windows installer.  So I installed it anyway
+and copied the files by hand under the <tt class="docutils literal"><span class="pre">Python23/Libs/site-packages/PIL</span></tt>
+subdirectory, and it works well.</p>
+</li>
+</ol>
+</div>
+<div class="section">
+<h2><a id="install-curator" name="install-curator">Install Curator</a></h2>
+<ol class="arabic">
+<li><p class="first">Get it from
+<a class="reference" href="http://curator.sourceforge.net/">http://curator.sourceforge.net/</a></p>
+</li>
+<li><p class="first">Uncompress the files:</p>
+<pre class="literal-block">
+cd &quot;c:/Program Files&quot;
+tar zxf c:/tmp/curator-&lt;ver&gt;.tar.gz
+</pre>
+<p>Note that you need some kind of tar tools (Cygwin has one) to unzip the files
+here.  I should provide zipped code at some point.  This only runs from a
+shell, so I'm assuming you already have installed Cygwin or MKS tools.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="section">
+<h1><a id="running-it" name="running-it">Running It</a></h1>
+<p>Like this:</p>
+<pre class="literal-block">
+C:/Python/python.exe C:/Program\ Files/curator/bin/curator --pil
+</pre>
+<p>I suggest using the <tt class="docutils literal"><span class="pre">--out-onedir</span></tt> option to avoid cluttering the input
+directory.  The output files should be located under a new <tt class="docutils literal"><span class="pre">html</span></tt> directory.</p>
+</div>
+</div>
+</body>
+</html>
