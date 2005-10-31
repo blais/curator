@@ -1,0 +1,52 @@
+<html>
+<head>
+<title><!--tag:basename--></title>
+</head>
+
+<body bgcolor=#ffffff text=#000000>
+
+<center>
+
+<img src="<!--tag:image-->" width=<!--tag:width()--> height=<!--tag:height()-->>
+
+<br>
+<br>
+<!--tagcode:
+if len( altrepns ) > 0:
+    print "Available as ",
+for rep in altrepns.keys():
+    print "<A HREF=\"%s\">%s</A>&nbsp;" % ( altrepns[ rep ], rep )
+-->
+
+<br>
+<br>
+<!--tag:getprop('name')-->
+<BR><BR>
+<i><!--tagcode:
+settings = getattr('settings')
+if settings: print settings
+--></i>
+
+
+<br><br>Return to what you were reading by using your browser's Back button.  Or you can try <a href="/back">clicking here to go back</a>
+<br><br><a href="/author/nasty-copyright-notice.html">copyright 
+<!--tagcode:
+import time
+print time.localtime()[0]
+-->
+author@domain.com</a>
+
+<br>
+<br>
+
+Note: you can personalize this site.  If you want to change the
+default image size or format that you get after clicking on a
+thumbnail, then <a href="http://photo.net/photo/personalize-thumbnail-targets.tcl">just tell us what you'd prefer</a>.
+
+<hr width=200>
+
+<a href="http://photo.net/author/"><address>author@domain.com</address></a>
+</center>
+
+</body>
+</html>

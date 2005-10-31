@@ -1,0 +1,217 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.77C-SGI [en] (X11; U; IRIX 6.5 IP32) [Netscape]">
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#9E0061" alink="#FF0000">
+
+<center>
+<h1>
+curator</h1></center>
+Curator is a powerful script that allows one to generate Web page image
+galleries with the intent of displaying photographic images on the Web,
+or for a CD-ROM presentation and archiving.
+<p>It generates static Web pages only - no special configuration or running
+scripts are required on the server. The script supports many file formats,
+hierarchical directories, thumbnail generation and update, per-image description
+file with any attributes, and 'tracks' of images spanning multiple directories.
+The templates consist of HTML with embedded Python. Running this script
+only requires a recent Python interpreter and the ImageMagick tools. If
+you've been looking for a simple yet very powerful script to do this task
+you've come to the right place.
+<p>This package consists in a single Python script file. Download and run
+(you'll need Python 2 or more and ImageMagick). It is released under the
+GNU General Public License.
+<h3>
+Resources</h3>
+
+<ul>
+<li>
+<a href="http://www.iro.umontreal.ca/~blais/public/curator/CHANGES">Changes</a>
+(recent changes, history, wishlist, todo)</li>
+
+<li>
+<a href="http://sourceforge.net/project/showfiles.php?group_id=31897">Download</a>
+releases</li>
+
+<li>
+<a href="http://www.iro.umontreal.ca/~blais/public/curator/curator">Browse</a>
+the very bleeding edge CVS (could be risky)</li>
+
+<li>
+<a href="http://sourceforge.net/tracker/?group_id=31897">Reporting bugs</a>
+(<b>please </b>use the sourceforge bug tracker, do <b>not</b> send email
+for bugs)</li>
+
+<li>
+<a href="http://www.iro.umontreal.ca/~blais/public/curator_examples">Example
+outputs</a></li>
+
+<li>
+<a href="http://www.iro.umontreal.ca/~blais/public/curator/templates">Example
+templates</a>, this script was originally written by its author for this
+<a href="http://www.iro.umontreal.ca/~blais/public/photo/index.html">image
+gallery</a></li>
+
+</ul>
+
+<h3>
+Links</h3>
+
+<ul>
+<li>
+<a href="http://sourceforge.net/projects/curator">SourceForge project page</a></li>
+
+<li>
+<a href="http://www.freshmeat.net/projects/curator">Freshmeat appindex</a></li>
+
+<li>
+<a href="http://www.iro.umontreal.ca/~blais">Author's homepage</a></li>
+
+<li>
+Getting <a href="http://python.org">Python</a></li>
+
+<li>
+Getting <a href="http://www.imagemagick.org">ImageMagick</a></li>
+
+<li>
+Extracting camera settings from EXIF jpeg's: <a href="http://topo.math.u-psud.fr/~bousch/exifdump.py">exifdump.py</a>,
+
+<a href="http://exif-tools.sourceforge.net">Exif-Tools.</a></li>
+</ul>
+
+<h3>
+Features</h3>
+This script was written with the following requirements/goals/features:
+<ul>
+<li>
+on the client side: nothing more should be required than a <b>web browser</b>
+to use it;</li>
+
+<li>
+on the server side: the web pages should be <b>statically</b> generated
+(no need for special server configuration, no cgi, no PHP, no Zope, no
+nonsense, just HTML);</li>
+
+<li>
+all links are <b>relative links</b> (i.e. it should work when burned on
+a CDROM or moved);</li>
+
+<li>
+the output HTML should be <b>templated/themeable</b> (i.e. the user can
+change the look of the output HTML). In fact, the templates themselves
+are written with embedded Python code in the HTML, the possibilities are
+endless;</li>
+
+<li>
+each photograph can have arbitrary attributes associated to it, in a <b>per-image
+attributes file</b>. The script simply makes these available to the template
+code to take advantage of. For example, this is how you can include photo
+description, EXIF camera settings, or any other user-define attribute (just
+write a template that uses those);</li>
+
+<li>
+<b>thumbnails</b> should be generated automatically, the thumbnails reside
+alongside the photos themselves;</li>
+
+<li>
+&nbsp;can be created to fill in variables in the templates (e.g. title,
+description, camera settings, other);</li>
+
+<li>
+<b>tracks</b> of images, independent (and across) of directories can be
+generated using the attributes file. The script compiles these list of
+images and they're available to the templates. This could be used, for
+example, to links are your "people", or "black and white" images together,
+each photograph can be part of one or more tracks;</li>
+
+<li>
+a <b>global</b>, <b>per-track</b> and <b>per-directory</b> index page should
+be generated;</li>
+
+<li>
+it should be <b>simple to use</b> (it should be able to work with a simple
+hierarchy of image files, with a trivial invocation, try it now, if it
+don't work, I've failed);</li>
+
+<li>
+we're not assuming that the names of the files are unique across the hierarchy
+(for digital camera images);</li>
+
+<li>
+supports <b>many file formats</b>;</li>
+
+<li>
+it should be <b>trivial to install, and portable</b> (i.e. should not use
+more than what is available in base installs of most linux distributions).
+In this respect, thus this script only depends on the availability of:</li>
+
+<ul>
+<li>
+Python, version 2 or more;</li>
+
+<li>
+ImageMagick tools;</li>
+</ul>
+There is no special library to install, no special tools, nothing. Download
+and run. This runs on a default redhat install. There is a switch for supporting
+old versions of the ImageMagick tools.</ul>
+
+<h3>
+Why?</h3>
+There are many other worthy similar systems on the web. It seems everyone
+and their sister has been writing an image gallery generation script these
+days. Why did I write my own, mind you ask? Most of the existing ones required
+server customizations (PHP, cgi scripts) and thus will not work off of
+an archive CDROM, or required some annoying installation of some special
+image manipulation packages, or didn't support templating. Besides, I really
+wanted the <i>tracks</i> feature, and when I started diddling a prototype
+for the embedded Python execution within the template HTML, I thought it
+was so cool, I just had to do it.
+<p>Another way to view the services that this script provides is this:
+<ul>
+<li>
+it gathers a per-directory, per-track, and global index of a hierarchy
+of files;</li>
+
+<li>
+templates for each file, directory, track, all, are processed with embedded
+python code in the template running in a specialized environment for the
+page to generate, including access to the per-file attributes;</li>
+
+<li>
+it knows about some image-specific stuff (thumbnails, alternate representations)</li>
+</ul>
+You could probably easily retarget it to some other application (e.g. viewing
+hierarchies of animations, text files, mp3's, etc.).
+<p>(I have to mention that the closest I've come to not writing the script
+myself and deciding on using someone else's was when I tried <a href="http://www.bb-zone.com/zope/bbzone">bbgallery</a>,
+which is one of the few nice scripts out there that you can just download
+and run without running around a thousand web sites to install the world
+on your machine.)
+<h3>
+Portability</h3>
+curator will run under any platform that has a Python2 (or more) interpreter
+and the ImageMagick tools. It has been tested under Linux, IRIX and Windows2000
+(download and unzip binaries from ImageMagick web site and use the --magick-path
+option to specify location the tools).
+<h3>
+Documentation</h3>
+Running the script with the default templates should be as easy as cd'ing
+in the root of the image hierarchy and typing <tt>curator</tt>.
+<p>Run <tt>curator --help</tt> for command line interface options, description
+of the required inputs and of what the script generates.
+<p>Run <tt>curator --help-script</tt> for a description of the scripting
+environment API. It should be quite simple, really. Grab one of the example
+templates above and modify them. Or use the <tt>--save-templates</tt> option
+and modify the default templates.
+<br>&nbsp;
+<br>&nbsp;
+<p>
+<hr WIDTH="100%">
+<br><i>Martin Blais &lt;blais@iro.umontreal.ca> $Id: index.html,v 1.1 2001/07/22
+19:07:42 blais Exp $</i>
+<br><a href="http://sourceforge.net"><img SRC="sflogo.php" ALT="SourceForge Logo" BORDER=0 height=31 width=88></a>
+</body>
+</html>
