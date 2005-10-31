@@ -2,22 +2,27 @@
 #
 # CHANGES for curator
 #
-# $Id: CHANGES 36 2001-07-31 20:30:15Z blais $
+# $Id: CHANGES 40 2001-08-02 06:07:22Z blais $
 #
 
 Current development version:
 
+------------------------------
+Version 1.0.2:
 
+   * Fixed bug with images not being in sorted order (was using map order).
+   * Fixed bug with multi-part images, now thumbnails are taken from [1].
+     Should I make it configurable?
+   * Changed fallback template so slightly (better navigation).
+   * Fixed empty subdirectories bug.
 
 ------------------------------
-
 Version 1.0.1:
 
    * Very very minor bug fixes.
    * Bug fix for EXIF JPEG's, that were not recognized by Python's imghdr.
 
 ------------------------------
-
 Version 1.0:
 
    * Release.
@@ -28,10 +33,6 @@ Version 1.0:
 #===============================================================================
 # TODO, COMMENTS, ETC, Wishlist/ToDo todo TODO list
 #===============================================================================
-
- - fix unrecognized jpeg Python imghdr library bug (add type)
-
- - perhaps add "global" navigation in the blais template?
 
  - publish my exif995.py script
    - finish it using the nikon-specific information, canon info also
@@ -48,6 +49,16 @@ Version 1.0:
 
  - change annotate_image default to use 'display', with a scalae factor
 
+ - implement a 'clean' option to curator, to instruct it to remove generated
+   files.
+
+ - add --no-html option for --force-html
+
+ - add affinity for one type of image or another
+
+ - publish all tools, describe workflow
+
+
 blais template:
 
  - make thumbs global list of images
@@ -56,12 +67,24 @@ blais template:
 
  - change font fo settings, doesn't work under linux (make less restrictive)
 
+ - include "source: " field for archival retrieval
+
+ - perhaps display one specific alt repn in the image square,
+   instead of the main one
+
+
+my tools:
+
+ - extract date and generate "new" section on main page
+
+
 
 
 #-------------------------------------------------------------------------------
 # long term
 #
 
+ - global definitions file to be executed for each environment for all templates
 
 # merge getprop() and getattr() ?
 
