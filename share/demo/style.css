@@ -1,0 +1,58 @@
+
+
+BODY {
+    background-color: white;
+    font-family: Arial,Geneva,sans-serif;
+}
+
+A:link { text-decoration: none }
+A:visited { text-decoration: none }
+
+.arrownav { width: 100%; border: none; margin: 0; padding: 0; }
+.arrow { font-weight: bold; text-decoration: none; }
+
+.image { border: solid 7px black; }
+
+.desctable { width: 100%; border: none; margin: 0; padding: 0; }
+
+.titlecell { vertical-align: top; }
+.title { font-size: 32px; }
+
+.location { font-weight: bold; }
+
+.description { font-family: Arial,Geneva,sans-serif; }
+
+HR.sephr { background-color: black; height: 1px; width: 90%; }
+
+.navtable { width: 100%; border: none }
+
+.settingscell {
+    width: 1%;
+    vertical-align: top;
+    text-align: right;
+    white-space: nowrap;
+}
+.settingstitle {
+    font-size: xx-small;
+    font-weight: bold;
+}
+.settings {
+    font-size: xx-small;
+}
+
+.tracksind { font-weight: bold; }
+
+.toptable { width: 100%; background-color: #EEEEFF; }
+
+.dirtop { background-color: #EEEEFF; }
+.globaltop { background-color: #FFEEEE; }
+.tracktop { background-color: #EEFFEE; }
+.sortedtop { background-color: #EEFFFF; }
+
+.toptitle { font-size: x-large; }
+.topsubtitle { font-weight: bold; }
+
+.mininav { text-align: right; font-size: smaller; }
+
+
+
