@@ -16,13 +16,15 @@ CELLPADDING=10 BGCOLOR="#000000"><TR><TD>
 <P>
 
 <!--title and location in big, if available, to the left-->
-<BIG STYLE="font-family : Arial, Helvetica, sans-serif; font-size: 24px;">
-<!--tag:getprop('name')--></BIG><BR>
+<BIG STYLE="font-family: Arial,Geneva,sans-serif; font-size: 24px;">
+<!--tag:getprop('name')--><BR>
+</BIG>
 <!--tagcode:
 location = getattr('location')
 if location:
     print "<B>%s</B><BR>" % location
 -->
+</FONT>
 <P>
 
 <!--description and camera settings, in a table-->
@@ -36,20 +38,22 @@ print """
 <TR>
 """
 
-if description and settings:
+if settings:
     print '<TD WIDTH="68%" VALIGN="TOP">'
 else:
     print '<TD WIDTH="90%" VALIGN="TOP">'
 
 if description:
+    print '<FONT STYLE="font-family: Arial,Geneva,sans-serif">'
     print description, "<P>"
+    print '</FONT>'
 
 #if description and settings:
 print """
 </TD>
 """
 
-if description and settings:
+if settings:
     print '<TD WIDTH="28%" VALIGN="BOTTOM">'
 else:
     print '<TD WIDTH="10%" VALIGN="BOTTOM">'
@@ -57,13 +61,13 @@ else:
 if settings:
     print """
 <P ALIGN="RIGHT">
-<SMALL STYLE="font-family: 'MS Sans Serif', Geneva, sans-serif; font-size: 11px; font-weight: bold;">
-CAMERA SETTINGS:</SMALL><BR>
-<SMALL STYLE="font-family: 'MS Sans Serif', Geneva, sans-serif; font-size: 11px; font-weight: normal;">
+<FONT STYLE="font-family: Arial,Geneva,sans-serif; font-weight: bold;" SIZE=-2>
+CAMERA SETTINGS:<BR>
+</FONT><FONT STYLE="font-family: Arial,Geneva,sans-serif;" SIZE=-2>
 """
     for l in settings.split( '\n' ):
         print "%s<BR>" % l
-    print "</SMALL>"
+    print "</FONT>"
 
 #if description and settings:
 print """
@@ -72,7 +76,7 @@ print """
 </TABLE>
 """
 -->
-
+</FONT>
 
 <!--previous and next thumbnails, with text in between-->
 <CENTER>
@@ -81,7 +85,7 @@ print """
 <TR>
 
 <!--tagcode:
-pi = prev( dirimages )
+pi = prev( allimages )
 
 pw = requested_thumb_size
 if pi:
@@ -100,8 +104,8 @@ if pi:
 between the floating thumbs-->
 
 <B>
-<!--tag:dirnav(dir=curdir,ignoreCurrent=0,dirsep=" :: ")-->
- :: 
+<!--tag:dirnav(dir=curdir,ignoreCurrent=0,dirsep=" / ")-->
+ / 
 <A HREF="<!--tag:image-->"><!--tag:image--></A>
 </B><BR>
 
@@ -126,7 +130,7 @@ if len(tracks) > 0:
 </TD>
 
 <!--tagcode:
-ni = next( dirimages )
+ni = next( allimages )
 
 nw = requested_thumb_size
 if ni:

@@ -2,14 +2,19 @@
 #
 # CHANGES for curator
 #
-# $Id: CHANGES 27 2001-07-31 00:36:02Z blais $
+# $Id: CHANGES 36 2001-07-31 20:30:15Z blais $
 #
 
 Current development version:
 
 
 
+------------------------------
 
+Version 1.0.1:
+
+   * Very very minor bug fixes.
+   * Bug fix for EXIF JPEG's, that were not recognized by Python's imghdr.
 
 ------------------------------
 
@@ -24,9 +29,39 @@ Version 1.0:
 # TODO, COMMENTS, ETC, Wishlist/ToDo todo TODO list
 #===============================================================================
 
+ - fix unrecognized jpeg Python imghdr library bug (add type)
+
+ - perhaps add "global" navigation in the blais template?
+
+ - publish my exif995.py script
+   - finish it using the nikon-specific information, canon info also
+   - make it independent of the camera
+   - make it nicer, but don't use distutils.fancy_getopt
+
+ - write a script to copy the exif info from one jpeg file to another
+
+ - write a script to extract thumbnails from jpegs which have them, this should
+   make generating thumbnails much faster
+
+ - publish all these python scripts together somehow, probably not another
+   project.  contact exit-tools author, and exifdump.py author
+
+ - change annotate_image default to use 'display', with a scalae factor
+
+blais template:
+
+ - make thumbs global list of images
+
+ - extract exif automatically if present in image
+
+ - change font fo settings, doesn't work under linux (make less restrictive)
+
+
+
 #-------------------------------------------------------------------------------
 # long term
 #
+
 
 # merge getprop() and getattr() ?
 
@@ -68,3 +103,7 @@ Eventually:
 # implement <convert> field to automatically make conversions (optional) the
 # code should be the same as thumbnails, the thumbnails is only a particular
 # case of this.
+
+Commands:
+
+for f in `find . -name \*.jpg ! -name \*thumb* `; do echo $f ; j=`echo $f | sed -e 's/jpg/desc/'`; echo "settings:" > $j ;  ~/curator/exif995.py $f  >>   $j ; done
