@@ -1,0 +1,12 @@
+#!/bin/sh
+#
+# $Id: env 118 2003-04-27 06:00:32Z blais $
+#
+# My environment initialization for this project.  This could or could not be
+# used as an example for your own settings for development.
+
+USERPATH=${USERPATH}:$PROJDIR/bin
+CURATOR_TEMPLATE=$PROJDIR/templates/blais
+PYTHONPATH=$PYTHONPATH:$PROJDIR/lib
+
+export CURATOR_TEMPLATE

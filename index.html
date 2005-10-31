@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.2.8: http://docutils.sourceforge.net/" />
+<title>curator</title>
+<link rel="stylesheet" href="default.css" type="text/css" />
+</head>
+<body>
+<div class="document" id="curator">
+<h1 class="title">curator</h1>
+<p>Curator is a powerful script that allows one to generate Web page image
+galleries with the intent of displaying photographic images on the Web, or for a
+CD-ROM presentation and archiving.</p>
+<p>It generates static Web pages only - no special configuration or running scripts
+are required on the server. The script supports many file formats, hierarchical
+directories, thumbnail generation and update, per-image description file with
+any attributes, and 'tracks' of images spanning multiple directories.  The
+templates consist of HTML with embedded Python. Running this script only
+requires a recent Python interpreter and the ImageMagick tools. If you've been
+looking for a simple yet very powerful script to do this task you've come to the
+right place.</p>
+<p>This package consists in a single Python script file. Download and run (you'll
+need Python 2 or more and ImageMagick). It is released under the GNU General
+Public License.</p>
+<div class="section" id="resources">
+<h1><a name="resources">Resources</a></h1>
+<ul class="simple">
+<li><a class="reference" href="http://www.iro.umontreal.ca/~blais/public/curator/CHANGES">Changes</a>
+(recent changes, history, wishlist, todo)</li>
+<li><a class="reference" href="http://sourceforge.net/project/showfiles.php?group_id=31897">Download</a>
+releases</li>
+<li><a class="reference" href="http://www.iro.umontreal.ca/~blais/public/curator/bin/curator">Browse</a> the very
+bleeding edge CVS (could be risky)</li>
+<li><a class="reference" href="http://sourceforge.net/tracker/?group_id=31897">Reporting Bugs</a>
+(<strong>please</strong> use the sourceforge bug tracker, do <strong>not</strong> send email
+for bugs)</li>
+<li><a class="reference" href="http://curator.sourceforge.net/demo/html/dirindex.html">Example Output</a></li>
+</ul>
+</div>
+<div class="section" id="links">
+<h1><a name="links">Links</a></h1>
+<ul class="simple">
+<li><a class="reference" href="http://sourceforge.net/projects/curator">Sourceforge Project Page</a></li>
+<li><a class="reference" href="http://www.freshmeat.net/projects/curator">Freshmeat Appindex</a></li>
+<li><a class="reference" href="http://www.iro.umontreal.ca/~blais">Author's Homepage</a></li>
+<li>Getting <a class="reference" href="http://python.org">Python</a></li>
+<li>Getting <a class="reference" href="http://www.imagemagick.org">ImageMagick</a></li>
+<li>Extracting camera settings from EXIF JPEG's (can easily be integrated with
+curator):<ul>
+<li><a class="reference" href="http://pyexif.sourceforge.net">PyExif</a></li>
+<li><a class="reference" href="http://home.cfl.rr.com/genecash/digital_camera.html">Gene Cash's EXIF.py</a></li>
+<li><a class="reference" href="http://topo.math.u-psud.fr/~bousch/exifdump.py">exifdump.py</a></li>
+<li><a class="reference" href="http://exif-tools.sourceforge.net">Exif-Tools.</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="features">
+<h1><a name="features">Features</a></h1>
+<p>This script was written with the following requirements/goals/features:</p>
+<ul>
+<li><p class="first">on the client side: nothing more should be required than a <strong>web browser</strong> to
+use it;</p>
+</li>
+<li><p class="first">on the server side: the web pages should be <strong>statically</strong> generated (no need
+for special server configuration, no cgi, no PHP, no Zope, no nonsense, just
+HTML);</p>
+</li>
+<li><p class="first">all links are <strong>relative links</strong> (i.e. it should work when burned on a CDROM
+or moved);</p>
+</li>
+<li><p class="first">the output HTML should be <strong>templated/themeable</strong> (i.e. the user can change
+the look of the output HTML). In fact, the templates themselves are written
+with embedded Python code in the HTML, the possibilities are endless;</p>
+</li>
+<li><p class="first">each photograph can have arbitrary attributes associated to it, in a
+<strong>per-image attributes file</strong>. The script simply makes these available to the
+template code to take advantage of. For example, this is how you can include
+photo description, EXIF camera settings, or any other user-define attribute
+(just write a template that uses those);</p>
+</li>
+<li><p class="first"><strong>thumbnails</strong> should be generated automatically, the thumbnails reside
+alongside the photos themselves;</p>
+</li>
+<li><p class="first">can be created to fill in variables in the templates (e.g. title, description,
+camera settings, other);</p>
+</li>
+<li><p class="first"><strong>tracks</strong> of images, independent (and across) of directories can be generated
+using the attributes file. The script compiles these list of images and
+they're available to the templates. This could be used, for example, to links
+are your &quot;people&quot;, or &quot;black and white&quot; images together, each photograph can
+be part of one or more tracks;</p>
+</li>
+<li><p class="first">a <strong>global</strong>, <strong>per-track</strong> and <strong>per-directory</strong> index page should be
+generated;</p>
+</li>
+<li><p class="first">it should be <strong>simple to use</strong> (it should be able to work with a simple
+hierarchy of image files, with a trivial invocation, try it now, if it don't
+work, I've failed);</p>
+</li>
+<li><p class="first">we're not assuming that the names of the files are unique across the hierarchy
+(for digital camera images);</p>
+</li>
+<li><p class="first">supports <strong>many file formats</strong>;</p>
+</li>
+<li><p class="first">it should be <strong>trivial to install, and portable</strong> (i.e. should not use more
+than what is available in base installs of most linux distributions).  In this
+respect, thus this script only depends on the availability of:</p>
+<blockquote>
+<ul class="simple">
+<li>Python, version 2 or more;</li>
+<li>ImageMagick tools;</li>
+</ul>
+</blockquote>
+</li>
+</ul>
+<p>There is no special library to install, no special tools, nothing. Download and
+run. This runs on a default redhat install. There is a switch for supporting old
+versions of the ImageMagick tools.</p>
+</div>
+<div class="section" id="why">
+<h1><a name="why">Why?</a></h1>
+<p>There are many other worthy similar systems on the web. It seems everyone and
+their sister has been writing an image gallery generation script these days. Why
+did I write my own, mind you ask? Most of the existing ones required server
+customizations (PHP, cgi scripts) and thus will not work off of an archive
+CDROM, or required some annoying installation of some special image manipulation
+packages, or didn't support templating. Besides, I really wanted the
+<em>tracks</em> feature, and when I started diddling a prototype for the embedded
+Python execution within the template HTML, I thought it was so cool, I just had
+to do it.</p>
+<p>Another way to view the services that this script provides is this:</p>
+<ul class="simple">
+<li>it gathers a per-directory, per-track, and global index of a hierarchy of
+files;</li>
+<li>templates for each file, directory, track, all, are processed with embedded
+python code in the template running in a specialized environment for the page
+to generate, including access to the per-file attributes;</li>
+<li>it knows about some image-specific stuff (thumbnails, alternate
+representations)</li>
+</ul>
+<p>You could probably easily retarget it to some other application (e.g. viewing
+hierarchies of animations, text files, mp3's, etc.).</p>
+<p>(I have to mention that the closest I've come to not writing the script myself
+and deciding on using someone else's was when I tried <a class="reference" href="http://www.bb-zone.com/zope/bbzone">bbgallery</a>, which is one of the few nice scripts out
+there that you can just download and run without running around a thousand web
+sites to install the world on your machine.)</p>
+</div>
+<div class="section" id="portability">
+<h1><a name="portability">Portability</a></h1>
+<p>curator will run under any platform that has a Python2 (or more) interpreter and
+the ImageMagick tools. It has been tested under Linux, IRIX and Windows2000
+(download and unzip binaries from ImageMagick web site and use the --magick-path
+option to specify location the tools).</p>
+</div>
+<div class="section" id="documentation">
+<h1><a name="documentation">Documentation</a></h1>
+<p>Running the script with the default templates should be as easy as cd'ing
+in the root of the image hierarchy and typing <tt class="literal"><span class="pre">curator</span></tt>.</p>
+<p>Run <tt class="literal"><span class="pre">curator</span> <span class="pre">--help</span></tt> for command line interface options, description of the
+required inputs and of what the script generates.</p>
+<hr />
+<p><em>Martin Blais &lt;blais at iro.umontreal.ca&gt;
+Last Update: $Id$</em></p>
+<!-- official sourceforge logo code snippet -->
+<p><img alt="SourceForge Logo" height="31" src="http://sourceforge.net/sflogo.php?group_id=2198&amp;type=1" width="88" /></p>
+<!-- Local Variables: *** -->
+<!-- fill-column: 70 *** -->
+<!-- mode: rst *** -->
+<!-- rst-html-stylesheet: "style.css" *** -->
+<!-- End: *** -->
+</div>
+</div>
+</body>
+</html>

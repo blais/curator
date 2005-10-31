@@ -1,0 +1,261 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<HTML>
+<HEAD>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Image: <!--tag:getprop('name')--></TITLE>
+</HEAD>
+<BODY BGCOLOR=#FFFFFF>
+
+<CENTER>
+
+<!-- quick navigator at the top -->
+<TABLE WIDTH="100%" COLS=2 BORDER="0" CELLSPACING="0" CELLPADDING="0">
+<TR><TD WIDTH=50% ALIGN=LEFT>
+<!--tagcode:
+pi = cycprev( allimages )
+if pi:
+    print anchor( getprop('html',pi), '&lt;&lt;' )
+-->
+</TD><TD WIDTH=50% ALIGN=RIGHT>
+<!--tagcode:
+ni = cycnext( allimages )
+if ni:
+    print anchor( getprop('html',ni), '&gt;&gt;' )
+-->
+</TD></TR></TABLE>
+
+<!--tagcode:
+
+imagefile=getprop('image')
+if imagefile:
+
+    (w,h)=getprop('size')
+    if w and h:
+        use_map = 1
+        # smart image map
+        pi = cycprev( allimages )
+        ni = cycnext( allimages )
+        
+        w4 = w / 4
+        ht = h / 10
+    
+        print '<map name="navmap">'
+        s = 0
+        e = w
+        if pi:
+            print '<area shape=rect coords="%d,%d,%d,%d" href="%s">' % \
+                  (0, 0, w4, h, getprop('html',pi))
+            s = w4
+    
+        if ni:
+            print '<area shape=rect coords="%d,%d,%d,%d" href="%s">' % \
+                  (3*w4, 0, w, h, getprop('html',ni))
+            e = 3*w4
+    
+        print '<area shape=rect coords="%d,%d,%d,%d" href="%s">' % \
+              (s, 0, e, ht, dirindex)
+    
+        print '</map>'
+            
+    else:
+        use_map = 0
+        
+    alt = 'BORDER=5 ALT=' + imagefile
+    if use_map:
+        alt += '  usemap="#%s"' % 'navmap'
+    print imageSrc(imagefile, 1, alt)
+
+#   old image in table
+# <TABLE WIDTH=<!- -tag:width()- -> HEIGHT=<!--tag:height()- ->
+# CELLPADDING=10 BGCOLOR="#000000"><TR><TD>
+# <IMG SRC="<!- -tag:quote( image )- ->">
+# </TD></TR></TABLE>
+-->
+</CENTER>
+
+<P>
+
+<!--description and camera settings, in a table-->
+<!--tagcode:
+description = getattr('description')
+settings = getattr('settings')
+if not settings:
+    settings = getattr('info')
+
+#if description and settings:
+print """
+<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0">
+<TR>
+"""
+
+if settings:
+    print '<TD WIDTH="68%" VALIGN="TOP">'
+else:
+    print '<TD WIDTH="90%" VALIGN="TOP">'
+
+-->
+
+<!--title and location in big, if available, to the left-->
+<BIG STYLE="font-family: Arial,Geneva,sans-serif; font-size: 24px;">
+<!--tag:getprop('name')--><BR>
+</BIG>
+<!--tagcode:
+location = getattr('location')
+if location:
+    print "<B>%s</B><BR>" % location
+-->
+</FONT>
+<P>
+
+<!--tagcode:
+
+if description:
+    print '<FONT STYLE="font-family: Arial,Geneva,sans-serif">'
+    # FIXME don't we have to convert accents?
+    print description, "<P>"
+    print '</FONT>'
+
+
+-->
+
+<!--previous and next thumbnails, with text in between-->
+<BR>
+<CENTER>
+<HR NOSHADE SIZE=1 WIDTH="90%">
+<TABLE WIDTH="100%" BORDER="0">
+<TR>
+
+<!--tagcode:
+pi = cycprev( allimages )
+
+pw = requested_thumb_size
+if pi:
+    thumbfn = getprop('thumb',pi)
+    pw = width(thumbfn)
+
+print '<TD WIDTH="%d">' % pw
+if pi:
+    print linkImage(thumbfn, \
+                    getprop('html',pi), 1, \
+		    'ALIGN=LEFT ALT="Previous (globally)"' )
+-->
+
+</TD><TD ALIGN="CENTER" BGCOLOR="#F4F4F4" CELLPADDING=5>
+
+<!--dirnav, alternative representations and navigation, 
+between the floating thumbs-->
+
+<B>
+<!--tag:dirnav(dir=curdir,ignoreCurrent=0,dirsep=" :: ")-->
+ :: 
+<A HREF="<!--tag:quote(image)-->"><!--tag:image--></A>
+</B><BR>
+
+<!--tagcode:
+if len( altrepns ) > 0:
+    print "Alternative representations:"
+    for rep in altrepns.keys():
+        print '<A HREF="%s">%s</A>&nbsp;' % ( quote( altrepns[ rep ] ), rep )
+    print '<P>'
+-->
+
+<BR>
+<!--tagcode:
+print textnav( dirimages, "dir", dirindex )
+if len(tracks) > 0:
+    print '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B>tracks:</B>'
+    for t in tracks:
+        print '&nbsp;&nbsp;&nbsp;&nbsp;'
+        print textnav( trackimages(t), t, trackindex(t) )
+--><P>
+
+<!--tagcode:
+if 'edit' in dir():
+    import os.path
+    print '<A HREF="%s%s">' % \
+        ( edit, quote( os.path.join( curdir, image ) ) )
+    print 'EDIT</A>'
+-->
+
+</TD>
+
+<!--tagcode:
+ni = cycnext( allimages )
+
+nw = requested_thumb_size
+if ni:
+    thumbfn = getprop('thumb',ni)
+    nw = width(thumbfn)
+print '<TD WIDTH="%d">' % nw
+
+if ni:
+    print linkImage(thumbfn, \
+                    getprop('html',ni), 1, \
+		    'ALIGN=RIGHT ALT="Next (globally)"' )
+-->
+
+</TD></TR></TABLE>
+</CENTER>
+
+
+
+<!--tagcode:
+
+#if description and settings:
+print """
+</TD>
+"""
+
+if settings:
+    print '<TD WIDTH="28%" ALIGN="RIGHT" VALIGN="TOP">'
+else:
+    print '<TD WIDTH="10%" ALIGN="RIGHT" VALIGN="TOP">'
+
+if settings:
+    print """
+<DIV ALIGN="RIGHT">
+<FONT STYLE="font-family: Arial,Geneva,sans-serif; font-weight: bold;" SIZE=-2>
+CAMERA SETTINGS:<BR>
+</FONT><FONT STYLE="font-family: Arial,Geneva,sans-serif;" SIZE=-2>
+"""
+
+    for s in settings.split( '\n' ):
+	  print "%s<BR>" % s
+    print "</FONT>"
+
+#if description and settings:
+print """
+</TD>
+</TR>
+</TABLE>
+"""
+-->
+</FONT>
+
+<!--
+<!- -tagcode:
+if settings:
+    fontspec = '<FONT STYLE="font-family: Arial,Geneva,sans-serif; ' + \
+               'font-weight: bold;" SIZE=-2>'
+    print "<TABLE COLS=3 ROWS=2 WIDTH=100%><TR><TD>"
+    print fontspec
+    print """    
+CAMERA SETTINGS:<BR>
+</TD></TR><TR>"""
+    ssettings = settings.split( '\n' )
+    ls = len(ssettings)
+    sets = [ 0, int(ls*0.33), int(ls*0.66), ls ]
+    for i in range(0,3):
+        print "<TD>"
+	print fontspec
+	for s in ssettings[ sets[i] : sets[i+1] ]:
+	    print "%s<BR>" % s
+        print "</TD>"
+    print "</TR></TABLE>"
+-->
+
+
+<!--tag:footer-->
+
+</BODY>
+</HTML>

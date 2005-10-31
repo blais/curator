@@ -1,0 +1,34 @@
+BODY {
+  background-color: white;
+  font-family: Arial,Geneva,sans-serif;
+}
+
+.title { text-align: center; }
+
+HR { width: 80%; height: 3px; background-color: black; }
+
+UL LI { list-style-type: square; }
+
+.field-name, .field.body { 
+    text-align: right; font-size: smaller; font-style: italic; 
+}
+
+.box { 
+    background-color: #EEE; 
+    margin-left: 2em; margin-right: 2em; padding: 10px;
+    border: thin dashed #999; 
+}
+
+.literal-block { 
+    background-color: #EEE; 
+    margin-left: 2em; margin-right: 2em; padding: 10px;
+    border: thin dashed #999; 
+}
+
+DIV .figure {
+    text-align: center;
+    border: thin solid #999;
+    margin: 20px;
+}
+
+

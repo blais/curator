@@ -1,0 +1,147 @@
+# -*- mode: text -*-
+#
+# TODO for curator
+#
+# $Id: TODO 129 2003-09-20 21:34:19Z blais $
+#
+
+
+#===============================================================================
+# TODO, COMMENTS, ETC, Wishlist/ToDo todo TODO list
+#===============================================================================
+
+* super nice idea from fxt:
+
+  make it able to create custom slide shows with a list of pictures in a certain
+  order
+
+  input a text file with the pictures in the desired order
+
+* bug: if only --browse is available, curator doesn't pick them up anymore
+  (e.g. use package_pics and try just running curator in the given subdir)
+
+* curator --out-onedir picks up its own html output directory when run twice in
+  a row.
+
+* update the Debian man file curator.sgml (fetch from the web).
+
+* something that is really annoying is that new directories are not stored in
+  order of date in the directory index, find a solution for that.
+
+ - for tracks, make curator able to use the basenames without the directories
+   for the picture names
+
+BIG BUG!  no-html is not the opposite of force-html, but they're implemented the same, do this!
+
+ - implement lowsrc in images using thumbnails as a source (tdemarge)
+
+ - write a script to copy the exif info from one jpeg file to another
+
+ - write a script to extract thumbnails from jpegs which have them, this should
+   make generating thumbnails much faster
+
+ - include "source: " field for archival retrieval
+
+ - instructions for making a CDROM under windows on web page
+
+#-------------------------------------------------------------------------------
+# long term
+#
+
+ - table generator: align image to top of cells, not center (vertically)
+
+ - global definitions file to be executed for each environment for all templates
+
+# merge getprop() and getattr() ?
+
+Eventually:
+
+ - the images don't necessarily reside where the HTML pages are, and can be
+   scattered/organized over many different directories;
+
+ - implement user-specified conversins
+
+
+# add 'next directory' functionality to script env
+
+# running surrogate programs, grab errors and print to stderr of this.
+# e.g. convert program
+
+# add reporting line or error in template
+
+# try accessing Image class... it works... but it shouldn't what can we do about
+# it?
+
+# --urls mode
+#   - only a global file, thumbnails generated locally
+#   - dependency on wget
+#   - look for desc file at URL location, then locally
+
+# support generating an HTML global index with a list of URLs away from output
+# dir. Should generate global index and image pages only. This would be a
+# special mode.
+
+# perhaps vars( class(envir) ) would solve the ugly hack for methods otherwise
+# we could bin by hand
+
+# allow placing thumbnails in an arbitrary directory.
+
+# you'll want to support adding a copyright to individual images, and other
+# types of conversions, processing
+
+# implement <convert> field to automatically make conversions (optional) the
+# code should be the same as thumbnails, the thumbnails is only a particular
+# case of this.
+
+Commands:
+
+for f in `find . -name \*.jpg ! -name \*thumb* `; do echo $f ; j=`echo $f | sed -e 's/jpg/desc/'`; echo "settings:" > $j ;  ~/curator/exif995.py $f  >>   $j ; done
+
+
+
+
+------------------------------
+
+Currently the following files are produces:
+
+ in root directory:
+ allindex.html
+ sortindex.html
+ trackindes.html
+
+ in every directory including root:
+ dirindex.html
+ image.html
+
+ It is good practice to have an index.html in each 
+directory, to give the web server a default file to 
+display. True, one could change the web server 
+default to "allindex.html, dirindex.html", but only 
+if you run your own web server.
+
+ With this in mind, it would be nice if there were an 
+option to tell curator the following:
+ - name the dirindex.html file in all none root
+ directories 'index.html'
+ - name the allindex.html file 'index.html'
+ or
+ name the sortindex.hml file 'index.hml'
+ or
+ name the trackindex.hml file 'index.hml'
+ or
+ name the dirindex.hml file in the root
+ directory 'index.hml'
+
+ References from the templates to the files should 
+take this into account and point to the right file, 
+of course.
+
+ Maybe I am the only one who ran into this problem, 
+maybe not.
+
+ Hope you like the idea.
+
+ Regards,
+ Thomas
+
+------------------------------
