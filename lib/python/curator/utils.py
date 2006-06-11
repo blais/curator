@@ -25,7 +25,7 @@ import string
 
 #-------------------------------------------------------------------------------
 #
-def parse_config( parser, opts ):
+def parse_config(parser, opts):
     
     """Parse a config using the optparse definition. We add appropriate data
     members to the opts object."""
@@ -35,7 +35,7 @@ def parse_config( parser, opts ):
 
 #-------------------------------------------------------------------------------
 #
-def letterbox( cur_size, new_side ):
+def letterbox(cur_size, new_side):
 
     """Letterbox the cur_size square to fit within new_side.  Returns the
     letterboxed size."""
@@ -47,7 +47,7 @@ def letterbox( cur_size, new_side ):
 
 #-------------------------------------------------------------------------------
 #
-def splitpath( path ):
+def splitpath(path):
 
     """Splits a path into a list of components.
     This function works around a quirk in string.split()."""
@@ -60,7 +60,7 @@ def splitpath( path ):
 
 #-------------------------------------------------------------------------------
 #
-def rel( fn, curdir ):
+def rel(fn, curdir):
 
     """Returns destination filename relative to curdir."""
 

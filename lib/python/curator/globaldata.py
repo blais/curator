@@ -28,10 +28,10 @@ class TracksData:
     """Gather various tracks/trails within the pool of images. We can then
     easily build independent slideshows for each of these tracks."""
 
-    def __init__( self ):
+    def __init__(self):
         pass
 
-    def execute( self, opts ):
+    def execute(self, opts):
 
         # Noop for now.
         return []

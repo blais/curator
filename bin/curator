@@ -225,7 +225,7 @@ from traceback import print_exception
 #===============================================================================
 
 class Entry:
-    def __init__( self, fn, mtime, size, info ):
+    def __init__(self, fn, mtime, size, info):
         self.fn = fn
         self.mtime = mtime
         self.size = size
@@ -234,7 +234,7 @@ class Entry:
 class FCache:
     mre = re.compile('^"([^"]*)" (\d+) (\d+): (.*)$')
 
-    def __init__( self, filename ):
+    def __init__(self, filename):
         "Initialize the fcache, reading the given file."
         self.cachefn = filename
         self.entries = {}
@@ -248,7 +248,7 @@ class FCache:
                     self.entries[fn] = Entry(fn, int(mtime), int(size), info)
             f.close()
 
-    def store( self, fn, info ):
+    def store(self, fn, info):
         s = os.stat(fn)
         self.entries[fn] = Entry(fn, s[stat.ST_MTIME], s[stat.ST_SIZE], info)
 
@@ -261,7 +261,7 @@ class FCache:
         except IOError:
             print >> sys.stderr, "Error writing out cache"
 
-    def lookup( self, fn ):
+    def lookup(self, fn):
         try:
             e = self.entries[fn]
         except KeyError:
@@ -273,7 +273,7 @@ class FCache:
 
         return e.info
 
-    def dump( self ):
+    def dump(self):
         if not opts.quiet:
             return None
         print "Cache filename:", self.cachefn
@@ -292,7 +292,7 @@ class FCache:
 
 #-------------------------------------------------------------------------------
 #
-def splitpath( path ):
+def splitpath(path):
 
     """Splits a path into a list of components.
     This function works around a quirk in string.split()."""
@@ -305,7 +305,7 @@ def splitpath( path ):
 
 #-------------------------------------------------------------------------------
 #
-def rel( dest, curdir ):
+def rel(dest, curdir):
 
     """Returns dest filename relative to curdir."""
 
@@ -351,7 +351,7 @@ def rel( dest, curdir ):
 
 #-------------------------------------------------------------------------------
 #
-def splitFn( fn ):
+def splitFn(fn):
     """Returns a tuplet ( dir, base, repn, ext ).  Repn is '' if not present."""
 
     ( dir, bn ) = os.path.split( fn )
@@ -387,7 +387,7 @@ imghdr.tests.append(test_jpeg_exif)
 fast_imgexts = [ 'jpeg', 'jpg', 'gif', 'png', 'rgb', 'pbm', 'pgm', 'ppm', \
                  'tiff', 'tif', 'rast', 'xbm', 'bmp' ]
 
-def imgwhat( fn, fast = None ):
+def imgwhat(fn, fast = None):
 
     """Faster, sloppier, imgwhat, that doesn't require opening the file if we
     specified that it should be fast."""
@@ -409,7 +409,7 @@ def imgwhat( fn, fast = None ):
 #
 magick_path_cache = {}
 
-def getMagickProg( progname ):
+def getMagickProg(progname):
 
     """Returns the program name to execute for an ImageMagick command."""
 
@@ -449,7 +449,7 @@ class AttrFile:
 
     #---------------------------------------------------------------------------
     #
-    def __init__( self, path ):
+    def __init__(self, path):
 
         """Constructor."""
 
@@ -459,7 +459,7 @@ class AttrFile:
 
     #---------------------------------------------------------------------------
     #
-    def read( self ):
+    def read(self):
 
         """Read the file and parse it."""
 
@@ -477,7 +477,7 @@ class AttrFile:
 
     #---------------------------------------------------------------------------
     #
-    def resetDirty( self ):
+    def resetDirty(self):
 
         """Resets the dirty flag. Why would you want to do this?"""
 
@@ -485,7 +485,7 @@ class AttrFile:
 
     #---------------------------------------------------------------------------
     #
-    def write( self ):
+    def write(self):
 
         """Write the file to disk, if dirty."""
 
@@ -513,7 +513,7 @@ class AttrFile:
 
     #---------------------------------------------------------------------------
     #
-    def parse( self, lines ):
+    def parse(self, lines):
 
         """Parse attributes file lines into a map."""
 
@@ -543,7 +543,7 @@ class AttrFile:
 
     #---------------------------------------------------------------------------
     #
-    def get( self, field ):
+    def get(self, field):
 
         """Returns an attribute field content extracted from this attributes
         file."""
@@ -555,7 +555,7 @@ class AttrFile:
 
     #---------------------------------------------------------------------------
     #
-    def get_def( self, field, default=None ):
+    def get_def(self, field, default=None):
 
         """Returns an attribute field content extracted from this attributes
         file."""
@@ -567,7 +567,7 @@ class AttrFile:
 
     #---------------------------------------------------------------------------
     #
-    def set( self, field, value ):
+    def set(self, field, value):
 
         """Sets a field of the description file. Returns true if the value has
         changed.  Set a field value to None to remove the field."""
@@ -630,7 +630,7 @@ class AttrFile:
 
     #---------------------------------------------------------------------------
     #
-    def __repr__( self ):
+    def __repr__(self):
 
         """Returns contents to a string for debugging purposes."""
 
@@ -656,7 +656,7 @@ class Dir:
 
     #---------------------------------------------------------------------------
     #
-    def __init__( self, path, parent, root ):
+    def __init__(self, path, parent, root):
 
         """This ctor is called recursively to implement the recursive find.
 
@@ -749,7 +749,7 @@ class Dir:
                 continue
             self._images.append( img )
 
-        def cmp_img( a, b ):
+        def cmp_img(a, b):
             return cmp( a._base, b._base )
         self._images.sort( cmp_img )
 
@@ -760,14 +760,14 @@ class Dir:
 
     #---------------------------------------------------------------------------
     #
-    def visit( self, functor ):
+    def visit(self, functor):
         for sd in self._subdirs:
             sd.visit(functor)
         functor(self)
 
     #---------------------------------------------------------------------------
     #
-    def getAllImages( self ):
+    def getAllImages(self):
 
         """Gathers and returns all images in this directory and in its
         subdirectories."""
@@ -779,7 +779,7 @@ class Dir:
 
     #---------------------------------------------------------------------------
     #
-    def getAllDirs( self ):
+    def getAllDirs(self):
 
         """Gathers and returns all dirnames and subdirnames from this
         directory."""
@@ -792,7 +792,7 @@ class Dir:
 
     #---------------------------------------------------------------------------
     #
-    def hasImages( self ):
+    def hasImages(self):
 
         """Returns true if this directory has images, or if any of it
         subdirectories has images."""
@@ -806,7 +806,7 @@ class Dir:
 
 #-------------------------------------------------------------------------------
 #
-def Dir_cmpdates( dir1, dir2 ):
+def Dir_cmpdates(dir1, dir2):
     """Compare two subdirectories by date."""
 
     t1, t2 = map(lambda x: os.stat(x._path).st_ctime, [dir1, dir2])
@@ -826,7 +826,7 @@ class Image:
 
     #---------------------------------------------------------------------------
     #
-    def __init__( self, dir, base ):
+    def __init__(self, dir, base):
 
         """Constructor. Initialize to accumulation information."""
 
@@ -847,7 +847,7 @@ class Image:
 
     #---------------------------------------------------------------------------
     #
-    def init( self, dirattrfile = None ):
+    def init(self, dirattrfile = None):
 
         """Performs proper initialization."""
 
@@ -895,7 +895,7 @@ class Image:
 
     #---------------------------------------------------------------------------
     #
-    def __repr__( self ):
+    def __repr__(self):
         t = "Image( %s, %s, %s, %s,\n" % \
             ( self._dir, self._base, self._repn, self._ext )
         t += "       %s, %s, %s,\n" % \
@@ -906,7 +906,7 @@ class Image:
 
     #---------------------------------------------------------------------------
     #
-    def cleanAlts( self ):
+    def cleanAlts(self):
 
         """Clean up found alt.repns, thumbnails, attributes files, etc."""
 
@@ -937,7 +937,7 @@ class Image:
 
     #---------------------------------------------------------------------------
     #
-    def selectName( self, absdirname ):
+    def selectName(self, absdirname):
 
         """Select base file (image file) for image page generation. Returns true
         if it could find a suitable one."""
@@ -997,7 +997,7 @@ class Image:
 
     #---------------------------------------------------------------------------
     #
-    def handleDescription( self, attrfile ):
+    def handleDescription(self, attrfile):
 
         """Two description files, with precedence for the first."""
 
@@ -1019,7 +1019,7 @@ class Image:
 
     #---------------------------------------------------------------------------
     #
-    def generateThumbnail( img ):
+    def generateThumbnail(img):
 
         """Generates a thumbnail for an image.
 
@@ -1140,7 +1140,7 @@ class Image:
 
 #-------------------------------------------------------------------------------
 #
-def checkThumbSize( isz, tsz, desired ):
+def checkThumbSize(isz, tsz, desired):
 
     """Returns true if the sizepair fits the size."""
 
@@ -1155,7 +1155,7 @@ def checkThumbSize( isz, tsz, desired ):
 
 #-------------------------------------------------------------------------------
 #
-def imageSizeNoCache( filename ):
+def imageSizeNoCache(filename):
 
     """Non-caching finding out the size of an image file."""
 
@@ -1223,7 +1223,7 @@ szre = re.compile('(\d+)x(\d+)')
 
 imageSizeCache = {}
 
-def imageSize( path ):
+def imageSize(path):
 
     """Returns the ( width, height ) image size pair.  Filename must be
     absolute. This method uses a cache to avoid having to reopen an image file
@@ -1260,7 +1260,7 @@ def imageSize( path ):
 
 #-------------------------------------------------------------------------------
 #
-def generatePage( fn, ttype, envir ):
+def generatePage(fn, ttype, envir):
 
     """Generates an index page, replacing the tags as needed."""
 
@@ -1283,7 +1283,7 @@ def generatePage( fn, ttype, envir ):
 
 #-------------------------------------------------------------------------------
 #
-def generateSummary( fn, allimages ):
+def generateSummary(fn, allimages):
 
     """Generates the text index that could be used by other processing tools."""
 
@@ -1329,13 +1329,13 @@ class StringStream:
 
     #---------------------------------------------------------------------------
     #
-    def __init__( self ):
+    def __init__(self):
         self._string = ""
         self._ignoreNext = 0
 
     #---------------------------------------------------------------------------
     #
-    def write( self, s ):
+    def write(self, s):
         if self._ignoreNext:
             s = s[1:]
             self._ignoreNext = 0
@@ -1344,12 +1344,12 @@ class StringStream:
 
     #---------------------------------------------------------------------------
     #
-    def ignoreNextChar( self ):
+    def ignoreNextChar(self):
         self._ignoreNext = 1
 
     #---------------------------------------------------------------------------
     #
-    def getvalue( self ):
+    def getvalue(self):
         return self._string
 
 
@@ -1400,7 +1400,7 @@ def readTemplates():
 
 #-------------------------------------------------------------------------------
 #
-def readTemplate( tfn ):
+def readTemplate(tfn):
 
     """Reads a template file.
     This method expects an simple filename."""
@@ -1487,7 +1487,7 @@ def readTemplate( tfn ):
 
 #-------------------------------------------------------------------------------
 #
-def compileCode( pretext, codetext, filename ):
+def compileCode(pretext, codetext, filename):
 
     """Compile a chunk of code."""
 
@@ -1518,7 +1518,7 @@ def compileCode( pretext, codetext, filename ):
 
 #-------------------------------------------------------------------------------
 #
-def compileTemplate( ttext, filename ):
+def compileTemplate(ttext, filename):
 
     """Compiles template text."""
 
@@ -1555,7 +1555,7 @@ def compileTemplate( ttext, filename ):
 
 #-------------------------------------------------------------------------------
 #
-def execTemplate( outfile, olist, envir ):
+def execTemplate(outfile, olist, envir):
 
     """Executes template text.  Output is written to outfile."""
 
@@ -1607,7 +1607,7 @@ def execTemplate( outfile, olist, envir ):
 
 #-------------------------------------------------------------------------------
 #
-def computeTrackmap( imagelist ):
+def computeTrackmap(imagelist):
 
     """Computes a map of files in each track. The key is the track name."""
 
@@ -1622,7 +1622,7 @@ def computeTrackmap( imagelist ):
 
 #-------------------------------------------------------------------------------
 #
-def clean( allimages, alldirs ):
+def clean(allimages, alldirs):
 
     """Removes the files generated by curator in the current directory and
     below."""
@@ -1684,7 +1684,7 @@ def clean( allimages, alldirs ):
 
 #---------------------------------------------------------------------------
 #
-def imageSrc( cd, image, xtra='' ):
+def imageSrc(cd, image, xtra=''):
 
     assert(image._filename)
     if image._size:
@@ -1699,7 +1699,7 @@ def imageSrc( cd, image, xtra='' ):
 
 #---------------------------------------------------------------------------
 #
-def thumbImage( cd, image, xtra='' ):
+def thumbImage(cd, image, xtra=''):
 
     assert(image._thumbfn)
     if image._thumbsize:
@@ -1715,7 +1715,7 @@ def thumbImage( cd, image, xtra='' ):
 
 #---------------------------------------------------------------------------
 #
-def table( dstdir, images, textfun=None, cols=4 ):
+def table(dstdir, images, textfun=None, cols=4):
 
     """(images: seq of Image, textfun: function, cols: int)
 
@@ -1763,7 +1763,7 @@ def table( dstdir, images, textfun=None, cols=4 ):
 
 #-------------------------------------------------------------------------------
 #
-def twoColumns( dstdir, images ):
+def twoColumns(dstdir, images):
 
     os = StringIO.StringIO()
     print >> os, '<table cols=2 width=\"100%\"><tr><td>'
@@ -1786,7 +1786,7 @@ def twoColumns( dstdir, images ):
 
 #---------------------------------------------------------------------------
 #
-def imagePile( dstdir, images ):
+def imagePile(dstdir, images):
 
     if len(images) == 0:
         return ""
@@ -1803,7 +1803,7 @@ def imagePile( dstdir, images ):
 #---------------------------------------------------------------------------
 #
 dirnavsep = ' / '
-def dirnav( cd, dir, rootname="(root)", dirsep=dirnavsep ):
+def dirnav(cd, dir, rootname="(root)", dirsep=dirnavsep):
 
     """(rootname: string, dirsep: string, dir: Dir, ignoreCurrent: bool)
 
@@ -1834,7 +1834,7 @@ def dirnav( cd, dir, rootname="(root)", dirsep=dirnavsep ):
 
 #---------------------------------------------------------------------------
 #
-def next( image, imglist ):
+def next(image, imglist):
     idx = imglist.index(image)
     if idx+1 < len( imglist ):
         return imglist[idx+1]
@@ -1842,7 +1842,7 @@ def next( image, imglist ):
 
 #---------------------------------------------------------------------------
 #
-def prev( image, imglist ):
+def prev(image, imglist):
     idx = imglist.index(image)
     if idx-1 >= 0:
         return imglist[idx-1]
@@ -1850,13 +1850,13 @@ def prev( image, imglist ):
 
 #---------------------------------------------------------------------------
 #
-def cycnext( image, imglist ):
+def cycnext(image, imglist):
     idxnext = (imglist.index(image)+1) % len(imglist)
     return imglist[idxnext]
 
 #---------------------------------------------------------------------------
 #
-def cycprev( image, imglist ):
+def cycprev(image, imglist):
     idxprev = (imglist.index(image)-1) % len(imglist)
     return imglist[idxprev]
 
@@ -2726,7 +2726,7 @@ def main():
     #
     if opts.quiet: print "==> directory index generation"
 
-    def walkDirsForIndex( dir ):
+    def walkDirsForIndex(dir):
         # this does not do make the link for existing dirindex
         if dir.hasImages() == 1:
             envir['dir'] = dir
@@ -2773,7 +2773,7 @@ def main():
     if opts.quiet: print "====> image page generation"
 
     global walkDirsForImages
-    def walkDirsForImages( dir ):
+    def walkDirsForImages(dir):
         for d in dir._subdirs:
             walkDirsForImages( d )
         for img in dir._images:

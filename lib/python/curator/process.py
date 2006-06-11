@@ -37,7 +37,7 @@ class Process:
 
     """Base class for process classes."""
 
-    def execute( self, opts, images, metadata, discovery ):
+    def execute(self, opts, images, metadata, discovery):
         """Base method for discovery.
 
         @input: options, list of images, metadata
@@ -55,7 +55,7 @@ class ReduceProcess(Process):
     """Rotate, reduce and apply a copyright to the given images, all using the
     PIL (Python Imaging Library)."""
 
-    def add_options( self, parser ):
+    def add_options(self, parser):
 
         group = optparse.OptionGroup(
             parser, "Process Options", "Common processing options.")
@@ -75,14 +75,14 @@ class ReduceProcess(Process):
 
         parser.add_option_group(group)
 
-    def execute( self, opts, images, metadata, discovery ):
+    def execute(self, opts, images, metadata, discovery):
 
         class Visitor(curator.data.Visitor):
 
-            def __init__( self, proc ):
+            def __init__(self, proc):
                 self.proc = proc
 
-            def visit_image( self, image ):
+            def visit_image(self, image):
 
                 #
                 # Set browseable image location
@@ -98,7 +98,7 @@ class ReduceProcess(Process):
 
         return images, metadata
 
-    def reduce_browse_image( self, opts, image, origfn, newfn, size ):
+    def reduce_browse_image(self, opts, image, origfn, newfn, size):
 
         """Reduce and rotate image to browseable size."""
 
@@ -223,7 +223,7 @@ class ThumbnailProcess(Process):
 
     """Compute a thumbnail of the given images."""
 
-    def add_options( self, parser ):
+    def add_options(self, parser):
 
         group = optparse.OptionGroup(
             parser, "Process Options", "Common processing options.")
@@ -235,11 +235,11 @@ class ThumbnailProcess(Process):
 
         parser.add_option_group(group)
 
-    def execute( self, opts, images, metadata, discovery ):
+    def execute(self, opts, images, metadata, discovery):
 
         class Visitor(curator.data.Visitor):
 
-            def visit_image( self, image ):
+            def visit_image(self, image):
 
                 try:
                     origfn = image.representations['browse']

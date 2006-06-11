@@ -23,7 +23,7 @@ import sys, os
 
 #-------------------------------------------------------------------------------
 #
-def parse_config( parser, opts ):
+def parse_config(parser, opts):
     
     """Parse a config using the optparse definition. We add appropriate data
     members to the opts object."""

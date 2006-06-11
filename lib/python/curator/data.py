@@ -31,7 +31,7 @@ class Image:
     """Class that represents an image, including its thumbnails and all
     alternative represenations as well."""
     
-    def __init__( self, fullfn ):
+    def __init__(self, fullfn):
 
         self.fullfn = fullfn # this is the filename relative to the root dir.
         self.dir, self.fn = split(fullfn)
@@ -48,14 +48,14 @@ class Dir:
 
     """Class that represents a directory containing images."""
 
-    def __init__( self, dirn ):
+    def __init__(self, dirn):
 
         self.dirn = dirn
         self.subdirs = []
 
         self.images = []
 
-    def dump( self, oss, indent='  ' ):
+    def dump(self, oss, indent='  '):
         print >> oss, indent, 'D', self.dirn
         indent += '  '
         for img in self.images:
@@ -63,7 +63,7 @@ class Dir:
         for dn in self.subdirs:
             dn.dump(oss, indent)
 
-    def visit( self, visitor ):
+    def visit(self, visitor):
 
         """Simple visitor interface (inorder), expects visitor with the
         following interface:
@@ -85,10 +85,10 @@ class Dir:
 #
 class Visitor:
 
-    def visit_image( self, image ):
+    def visit_image(self, image):
         pass
 
-    def visit_dir( self, dir ):
+    def visit_dir(self, dir):
         pass
 
 

@@ -41,7 +41,7 @@ from pprint import pprint
 
 #-------------------------------------------------------------------------------
 #
-def add_global_options( parser ):
+def add_global_options(parser):
 
     """Add global options to the given options parser."""
 
@@ -66,13 +66,13 @@ class Publisher:
     """Main class that sets up the default processing pipeline for curator.  You
     can customize using the constructor."""
 
-    def __init__( self,
-                  discovery=Discovery(),
-                  imagedata=[ AttrFileImageData(), EXIFImageData() ],
-                  processes=ReduceProcess(),
-                  thumbproc=ThumbnailProcess(),
-                  globaldata=GlobalData(),
-                  generation=Generation() ):
+    def __init__(self,
+                 discovery=Discovery(),
+                 imagedata=[ AttrFileImageData(), EXIFImageData() ],
+                 processes=ReduceProcess(),
+                 thumbproc=ThumbnailProcess(),
+                 globaldata=GlobalData(),
+                 generation=Generation()):
 
         self.discovery = discovery
         self.imagedata = imagedata
@@ -85,7 +85,7 @@ class Publisher:
             raise SystemExit("Error: you must specify some thumbnail processing")
         
 
-    def setup_options_parser( self, parser ):
+    def setup_options_parser(self, parser):
 
         # add the options common to all setups.
         add_global_options(parser)
@@ -100,7 +100,7 @@ class Publisher:
                 if cc and hasattr(cc, 'add_options'):
                     cc.add_options(parser)
 
-    def parse_args( self, parser ):
+    def parse_args(self, parser):
 
         self.setup_options_parser(parser)
         opts, args = parser.parse_args()
@@ -109,9 +109,9 @@ class Publisher:
 
         return opts, args
 
-    def run( self, opts ):
+    def run(self, opts):
 
-        def print_phase( s, c='-' ):
+        def print_phase(s, c='-'):
             print
             ss = 'Phase: %s' % s.__class__.__name__
             print ss

@@ -32,7 +32,7 @@ import elementtree_helpers
 
 #-------------------------------------------------------------------------------
 #
-def find_elements_with_attrib( el, attr_name, parent=None ):
+def find_elements_with_attrib(el, attr_name, parent=None):
 
     """Go thru all the tree and extract all the elements with the given
     attribute."""
@@ -54,7 +54,7 @@ class TemplateOutput:
 
     id = 'r:id'
 
-    def __init__( self, fn=None ):
+    def __init__(self, fn=None):
 
         if not fn:
             fn = join(dirname(__file__), 'default-template.html')
@@ -62,14 +62,14 @@ class TemplateOutput:
 
         self.read_templates()
 
-    def read_templates( self ):
+    def read_templates(self):
         try:
             self.tree = elementtree.ElementTree.parse(open(self.fn, 'r'))
             self.root = self.tree.getroot()
         except IOError, e:
             raise SystemExit("Error: reading template (%s)" % e)
 
-    def output( self, f, obj ):
+    def output(self, f, obj):
         els = find_elements_with_attrib(self.root, TemplateOutput.id)
         for el, parent in els:
             attr_value = el.attrib[TemplateOutput.id]

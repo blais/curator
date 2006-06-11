@@ -43,7 +43,7 @@ class AttrFile:
 
     #---------------------------------------------------------------------------
     #
-    def __init__( self, path ):
+    def __init__(self, path):
 
         """Constructor."""
 
@@ -53,7 +53,7 @@ class AttrFile:
 
     #---------------------------------------------------------------------------
     #
-    def read( self ):
+    def read(self):
 
         """Read the file and parse it."""
 
@@ -71,7 +71,7 @@ class AttrFile:
 
     #---------------------------------------------------------------------------
     #
-    def resetDirty( self ):
+    def resetDirty(self):
 
         """Resets the dirty flag. Why would you want to do this?"""
 
@@ -79,7 +79,7 @@ class AttrFile:
 
     #---------------------------------------------------------------------------
     #
-    def write( self ):
+    def write(self):
 
         """Write the file to disk, if dirty."""
 
@@ -107,7 +107,7 @@ class AttrFile:
 
     #---------------------------------------------------------------------------
     #
-    def parse( self, lines ):
+    def parse(self, lines):
 
         """Parse attributes file lines into a map."""
 
@@ -137,7 +137,7 @@ class AttrFile:
 
     #---------------------------------------------------------------------------
     #
-    def get( self, field ):
+    def get(self, field):
 
         """Returns an attribute field content extracted from this attributes
         file."""
@@ -149,7 +149,7 @@ class AttrFile:
 
     #---------------------------------------------------------------------------
     #
-    def get_def( self, field, default ):
+    def get_def(self, field, default):
 
         """Returns an attribute field content extracted from this attributes
         file."""
@@ -161,7 +161,7 @@ class AttrFile:
 
     #---------------------------------------------------------------------------
     #
-    def set( self, field, value ):
+    def set(self, field, value):
 
         """Sets a field of the description file. Returns true if the value has
         changed.  Set a field value to None to remove the field."""
@@ -224,7 +224,7 @@ class AttrFile:
 
     #---------------------------------------------------------------------------
     #
-    def __repr__( self ):
+    def __repr__(self):
 
         """Returns contents to a string for debugging purposes."""
 

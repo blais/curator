@@ -31,7 +31,7 @@ class Image:
     """Class that represents an image, including its thumbnails and all
     alternative represenations as well."""
 
-    def __init__( self, fullfn ):
+    def __init__(self, fullfn):
 
         self.fullfn = fullfn
         self.dir, self.fn = os.path.splitpath(fullfn)
@@ -48,7 +48,7 @@ class Dir:
     """Class that represents a directory containing images."""
 
 
-    def __init__( self, dirn ):
+    def __init__(self, dirn):
 
         self.dirn = dirn
         self.subdirs = {}

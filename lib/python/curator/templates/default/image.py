@@ -7,20 +7,20 @@ image, dir, css = None, None, None
 #
 # template code for image.
 #
-def title( el ):
+def title(el):
     el.text = image.fullfn
 
-def link_css( el ):
+def link_css(el):
     print css, cwd
     el.attrib['href'] = rel(css, cwd)
 
-def left_url( el ):
+def left_url(el):
     el.attrib['href'] = 'left_url_replaced.html'
 
-def right_url( el ):
+def right_url(el):
     el.attrib['href'] = 'right_url_replaced.html'
     
-def navmap( el ):
+def navmap(el):
     w, h = image.size
     w4, h4 = w/4, h/4
     mapp = MAP(id="navmap")

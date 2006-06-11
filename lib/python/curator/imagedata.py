@@ -36,7 +36,7 @@ class ImageData:
 
     """Base class for image-data classes."""
 
-    def execute( self, opts, images, metadata ):
+    def execute(self, opts, images, metadata):
         """Base method for discovery.
 
         @input: options, list of images, metadata until now
@@ -64,14 +64,14 @@ class AttrFileImageData(ImageData):
     attr_fliprot[2] = (False, False, 1)
     attr_fliprot[3] = (False, False, 3)
 
-    def execute( self, opts, images, metadata ):
+    def execute(self, opts, images, metadata):
 
         class Visitor(curator.data.Visitor):
 
-            def __init__( self ):
+            def __init__(self):
                 self.metadata = {}
 
-            def visit_image( self, image ):
+            def visit_image(self, image):
                 afn = join(opts.root, image.fullfn)
                 bn, ext = splitext(afn)
                 descfn = join(opts.root, '%s.%s' % (bn, AttrFileImageData.ext))
@@ -104,14 +104,14 @@ class EXIFImageData(ImageData):
     flip_rotate[7] = (False, True, 1)
     flip_rotate[8] = (False, False, 3)
     
-    def execute( self, opts, images, metadata ):
+    def execute(self, opts, images, metadata):
 
         class Visitor(curator.data.Visitor):
 
-            def __init__( self ):
+            def __init__(self):
                 self.metadata = {}
 
-            def visit_image( self, image ):
+            def visit_image(self, image):
                 print "  reading exif tags from '%s'" % image.fullfn
                 afn = join(opts.root, image.fullfn)
                 f = open(afn, 'r')

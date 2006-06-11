@@ -26,10 +26,10 @@ class Process:
 
     """Base class for process classes."""
 
-    def __init__( self ):
+    def __init__(self):
         pass
 
-    def process( self, opts, images, metadata ):
+    def process(self, opts, images, metadata):
         """Base method for discovery.
 
         @input: options, list of images, metadata

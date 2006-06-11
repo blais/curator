@@ -27,11 +27,11 @@ import unittest
 
 class Translator:
 
-    def do_title( self, parent ):
+    def do_title(self, parent):
         """Setting simple text without a parent."""
         parent.text = 'I like this title.'
 
-    def do_other( self, parent ):
+    def do_other(self, parent):
         """Setting as a node."""
 
         s = SPAN(P(text='blabla'))

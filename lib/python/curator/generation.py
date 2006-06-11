@@ -39,13 +39,13 @@ class Generation:
 
     """Base interface for generation classes."""
 
-    def execute( self, opts, images, metadata, globdata, discovery ):
+    def execute(self, opts, images, metadata, globdata, discovery):
         raise NotImplementedError()
 
 
 #-------------------------------------------------------------------------------
 #
-def find_elements_with_attrib( el, attr_name, parent=None ):
+def find_elements_with_attrib(el, attr_name, parent=None):
 
     """Go thru all the tree and extract all the elements with the given
     attribute."""
@@ -67,7 +67,7 @@ class TemplateGeneration(Generation):
 
     id = 'r:id'
     
-    def add_options( self, parser ):
+    def add_options(self, parser):
 
         group = optparse.OptionGroup(
             parser, "Process Options", "Common processing options.")
@@ -79,7 +79,7 @@ class TemplateGeneration(Generation):
 
         parser.add_option_group(group)
 
-    def replace( self, tree, code, css, image, dir, cwd ):
+    def replace(self, tree, code, css, image, dir, cwd):
         code.cwd = cwd
 
         code.image = image
@@ -102,7 +102,7 @@ class TemplateGeneration(Generation):
 
     #---------------------------------------------------------------------------
     #
-    def read_templates( self, opts ):
+    def read_templates(self, opts):
         #
         # Read templates in.
         #
@@ -111,7 +111,7 @@ class TemplateGeneration(Generation):
 
         templates = Dummy()
 
-        def read_template( base ):
+        def read_template(base):
 
             # load HTML template.
             tmpl = Dummy()
@@ -141,7 +141,7 @@ class TemplateGeneration(Generation):
 
     #---------------------------------------------------------------------------
     #
-    def execute( self, opts, images, metadata, globdata, discovery ):
+    def execute(self, opts, images, metadata, globdata, discovery):
 
         templates = self.read_templates(opts)
 
@@ -156,13 +156,13 @@ class TemplateGeneration(Generation):
 
             html_fmt = '%s.html'
 
-            def __init__( self, html_root ):
+            def __init__(self, html_root):
                 self.prev, self.next = None, None
                 self.html_root = html_root
 
                 self.curdir = None
 
-            def visit_image( self, image ):
+            def visit_image(self, image):
                 if self.prev:
                     self.prev.next = image
                 image.prev, image.next = self.prev, None
@@ -177,7 +177,7 @@ class TemplateGeneration(Generation):
 
                 #print image.dirobj.html, image.html
                 
-            def visit_dir( self, dir ):
+            def visit_dir(self, dir):
 
                 dir.html = join(self.html_root, dir.dirn,
                                 self.html_fmt % 'index')
@@ -193,12 +193,12 @@ class TemplateGeneration(Generation):
         # 2. generate directory indexes
         class GenVisitor(curator.data.Visitor):
 
-            def __init__( self, generation, templates, opts ):
+            def __init__(self, generation, templates, opts):
                 self.generation = generation
                 self.templates = templates
                 self.opts = opts
 
-            def visit_image( self, image ):
+            def visit_image(self, image):
 
                 print '  Generating Image', image
 
@@ -213,7 +213,7 @@ class TemplateGeneration(Generation):
                 outf = open(join(self.opts.root, image.html), 'w')
                 treecopy.write(outf, encoding='UTF-8')
 
-            def visit_dir( self, dir ):
+            def visit_dir(self, dir):
                 print '  Generating Index', dir
                 # FIXME todo
                 

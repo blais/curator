@@ -23,7 +23,7 @@ from curator import discovery
 
 class Discovery(discovery.Discovery):
 
-    def discover( self, opts ):
+    def discover(self, opts):
 
         for root, dirs, files in os.walk(opts.root_dir, topdown=True):
             print files

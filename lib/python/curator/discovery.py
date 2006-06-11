@@ -43,10 +43,10 @@ class Discovery:
 
     """Base class for discovery classes."""
 
-    def __init__( self ):
+    def __init__(self):
         pass
 
-    def execute( self, opts ):
+    def execute(self, opts):
         """Base method for discovery.
 
         @input: options
@@ -74,13 +74,13 @@ class SepRootDiscovery(Discovery):
     browse_subdir = 'browse-%s'
     browse_fmt = '%s.browse.jpg'
 
-    def execute( self, opts ):
+    def execute(self, opts):
 
         #
         # Phase 1: go get the files
         #
 
-        def get_files( curdir_path ):
+        def get_files(curdir_path):
 
             # don't descend in curator's directory.
             if curdir_path == self.root_subdir:
@@ -132,7 +132,7 @@ class SepRootDiscovery(Discovery):
 
 ##         class Visitor(curator.data.Visitor):
 
-##             def visit_image( self, image ):
+##             def visit_image(self, image):
 ##                 # set thumbnail location
 ##                 image.representations['thumb'] = join(
 ##                     SepRootDiscovery.root_subdir,
@@ -144,7 +144,7 @@ class SepRootDiscovery(Discovery):
 
         return images
 
-    def get_location( self, type, image, extra ):
+    def get_location(self, type, image, extra):
 
         """Returns a location suitable for storing the given image
         version."""

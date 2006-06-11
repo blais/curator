@@ -39,7 +39,7 @@ from curator.generation.template import Generation
 
 #-------------------------------------------------------------------------------
 #
-def add_global_options( parser ):
+def add_global_options(parser):
 
     """Add global options to the given options parser."""
 
@@ -61,13 +61,13 @@ class Publisher:
 
     """Main class that contains the processing pipeline for curator."""
 
-    def __init__( self,
-                  discovery=Discovery(),
-                  imagedata=ImageData(),
-                  process=ReduceProcess(),
-                  thumbproc=ThumbProcess(),
-                  globaldata=GlobalData(),
-                  generation=Generation() ):
+    def __init__(self,
+                 discovery=Discovery(),
+                 imagedata=ImageData(),
+                 process=ReduceProcess(),
+                 thumbproc=ThumbProcess(),
+                 globaldata=GlobalData(),
+                 generation=Generation()):
 
         self.discovery = discovery
         self.imagedata = imagedata
@@ -76,7 +76,7 @@ class Publisher:
         self.globaldata = globaldata
         self.generation = generation
 
-    def setup_options_parser( self, parser ):
+    def setup_options_parser(self, parser):
         
         add_global_options(parser)
         for c in [self.discovery, self.imagedata,
@@ -86,7 +86,7 @@ class Publisher:
             if c and hasattr(c, 'add_options'):
                 c.add_options(parser)
         
-    def parse_options( self, parser ):
+    def parse_options(self, parser):
 
         setup_options_parser(parser)
         opts, args = parser.parse_args()
@@ -95,6 +95,6 @@ class Publisher:
 
         return opts, args
 
-    def run( self ):
+    def run(self):
 
         pass

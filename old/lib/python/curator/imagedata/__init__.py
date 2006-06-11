@@ -26,10 +26,10 @@ class ImageData:
 
     """Base class for image-data classes."""
 
-    def __init__( self ):
+    def __init__(self):
         pass
 
-    def getdata( self, opts, images ):
+    def getdata(self, opts, images):
         """Base method for discovery.
 
         @input: options, list of images

@@ -27,10 +27,10 @@ class Discovery:
 
     """Base class for discovery classes."""
 
-    def __init__( self ):
+    def __init__(self):
         pass
 
-    def discover( self, opts ):
+    def discover(self, opts):
         """Base method for discovery.
 
         @input: options
