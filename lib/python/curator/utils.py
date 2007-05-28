@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # $Source$
 # $Id$
@@ -11,20 +10,13 @@
 __version__ = "$Revision$"
 __author__ = "Martin Blais <blais@furius.ca>"
 
-#===============================================================================
-# EXTERNAL DECLARATIONS
-#===============================================================================
 
 import sys, os
 from os.path import join
 import string
 
-#===============================================================================
-# LOCAL DECLARATIONS
-#===============================================================================
 
-#-------------------------------------------------------------------------------
-#
+
 def parse_config(parser, opts):
     
     """Parse a config using the optparse definition. We add appropriate data
@@ -33,8 +25,7 @@ def parse_config(parser, opts):
     pass ## FIXME todo modify opts 
 
 
-#-------------------------------------------------------------------------------
-#
+
 def letterbox(cur_size, new_side):
 
     """Letterbox the cur_size square to fit within new_side.  Returns the
@@ -45,8 +36,7 @@ def letterbox(cur_size, new_side):
     return tuple( [int(x * f) for x in cur_size] )
 
 
-#-------------------------------------------------------------------------------
-#
+
 def splitpath(path):
 
     """Splits a path into a list of components.
@@ -58,8 +48,7 @@ def splitpath(path):
         s = []
     return s
 
-#-------------------------------------------------------------------------------
-#
+
 def rel(fn, curdir):
 
     """Returns destination filename relative to curdir."""

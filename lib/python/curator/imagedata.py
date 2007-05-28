@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # $Source$
 # $Id$
@@ -14,9 +13,6 @@ each image.
 __version__ = "$Revision$"
 __author__ = "Martin Blais <blais@furius.ca>"
 
-#===============================================================================
-# EXTERNAL DECLARATIONS
-#===============================================================================
 
 from os.path import *
 
@@ -26,12 +22,8 @@ import curator.data
 import curator.ext.EXIF as EXIF
 
 
-#===============================================================================
-# PUBLIC DECLARATIONS
-#===============================================================================
 
-#-------------------------------------------------------------------------------
-#
+
 class ImageData:
 
     """Base class for image-data classes."""
@@ -48,8 +40,7 @@ class ImageData:
         return metadata
 
 
-#-------------------------------------------------------------------------------
-#
+
 class AttrFileImageData(ImageData):
 
     """Backwards-compatibility image data gatherer that uses the same format as
@@ -87,8 +78,7 @@ class AttrFileImageData(ImageData):
         return visitor.metadata
 
 
-#-------------------------------------------------------------------------------
-#
+
 class EXIFImageData(ImageData):
 
     """EXIF tags data gatherer.  This uses Gene Cash's EXIF.py library."""
@@ -155,8 +145,7 @@ class EXIFImageData(ImageData):
 # Other = reserved
 
 
-#-------------------------------------------------------------------------------
-#
+
 class XMLImageData(ImageData):
 
     """Image data gatherer that loads an associated XML file using ElementTree

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # $Source$
 # $Id$
@@ -13,16 +12,9 @@ This module contains gathering of some common global data.
 __version__ = "$Revision$"
 __author__ = "Martin Blais <blais@furius.ca>"
 
-#===============================================================================
-# EXTERNAL DECLARATIONS
-#===============================================================================
 
-#===============================================================================
-# PUBLIC DECLARATIONS
-#===============================================================================
 
-#-------------------------------------------------------------------------------
-#
+
 class TracksData:
 
     """Gather various tracks/trails within the pool of images. We can then

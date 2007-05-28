@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # $Source$
 # $Id$
@@ -14,9 +13,6 @@ concrete discovery objects themselves.
 __version__ = "$Revision$"
 __author__ = "Martin Blais <blais@furius.ca>"
 
-#===============================================================================
-# EXTERNAL DECLARATIONS
-#===============================================================================
 
 import os
 import optparse
@@ -27,12 +23,8 @@ from curator.utils import letterbox
 from curator.imagedata import EXIFImageData
 
 
-#===============================================================================
-# PUBLIC DECLARATIONS
-#===============================================================================
 
-#-------------------------------------------------------------------------------
-#
+
 class Process:
 
     """Base class for process classes."""
@@ -48,8 +40,7 @@ class Process:
         return images, metadata
 
 
-#-------------------------------------------------------------------------------
-#
+
 class ReduceProcess(Process):
 
     """Rotate, reduce and apply a copyright to the given images, all using the
@@ -217,8 +208,7 @@ class ReduceProcess(Process):
 
         print
 
-#-------------------------------------------------------------------------------
-#
+
 class ThumbnailProcess(Process):
 
     """Compute a thumbnail of the given images."""

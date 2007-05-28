@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # $Source$
 # $Id$
@@ -16,9 +15,6 @@ This is where the location of files is chosen.
 __version__ = "$Revision$"
 __author__ = "Martin Blais <blais@furius.ca>"
 
-#===============================================================================
-# EXTERNAL DECLARATIONS
-#===============================================================================
 
 import sys, os
 from os.path import *
@@ -29,16 +25,12 @@ import curator.data
 
 from pprint import pprint
 
-#===============================================================================
-# PUBLIC DECLARATIONS
-#===============================================================================
 
 # valid image extensions
 imgexts = [ 'jpeg', 'jpg', 'gif', 'png', 'rgb', 'pbm', 'pgm', 'ppm', \
             'tiff', 'tif', 'rast', 'xbm', 'bmp' ]
 
-#-------------------------------------------------------------------------------
-#
+
 class Discovery:
 
     """Base class for discovery classes."""
@@ -56,8 +48,7 @@ class Discovery:
         pass
 
 
-#-------------------------------------------------------------------------------
-#
+
 class SepRootDiscovery(Discovery):
 
     """A simple strategy for organizing all generated files under a single

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # $Source$
 # $Id$
@@ -14,9 +13,6 @@ template replacement.
 __version__ = "$Revision$"
 __author__ = "Martin Blais <blais@furius.ca>"
 
-#===============================================================================
-# EXTERNAL DECLARATIONS
-#===============================================================================
 
 import sys, os
 import optparse
@@ -29,12 +25,8 @@ import elementtree
 from elementtree.ElementTree import Element, SubElement
 import elementtree_helpers
 
-#===============================================================================
-# LOCAL DECLARATIONS
-#===============================================================================
 
-#-------------------------------------------------------------------------------
-#
+
 class Generation:
 
     """Base interface for generation classes."""
@@ -43,8 +35,7 @@ class Generation:
         raise NotImplementedError()
 
 
-#-------------------------------------------------------------------------------
-#
+
 def find_elements_with_attrib(el, attr_name, parent=None):
 
     """Go thru all the tree and extract all the elements with the given
@@ -58,8 +49,7 @@ def find_elements_with_attrib(el, attr_name, parent=None):
     return found
 
 
-#-------------------------------------------------------------------------------
-#
+
 class TemplateGeneration(Generation):
 
     """Output generation module that uses some simple XHTML file templates to

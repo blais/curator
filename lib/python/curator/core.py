@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # $Source$
 # $Id$
@@ -15,9 +14,6 @@ pipeline with the publisher objects in this module.
 __version__ = "$Revision$"
 __author__ = "Martin Blais <blais@furius.ca>"
 
-#===============================================================================
-# EXTERNAL DECLARATIONS
-#===============================================================================
 
 import sys
 import os
@@ -35,12 +31,8 @@ from curator.generation import TemplateGeneration as Generation
 
 from pprint import pprint
 
-#===============================================================================
-# LOCAL DECLARATIONS
-#===============================================================================
 
-#-------------------------------------------------------------------------------
-#
+
 def add_global_options(parser):
 
     """Add global options to the given options parser."""
@@ -59,8 +51,7 @@ def add_global_options(parser):
 
     parser.add_option_group(group)
 
-#-------------------------------------------------------------------------------
-#
+
 class Publisher:
 
     """Main class that sets up the default processing pipeline for curator.  You

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # $Source$
 # $Id$
@@ -13,19 +12,12 @@ These classes are used to pass information around.
 __version__ = "$Revision$"
 __author__ = "Martin Blais <blais@furius.ca>"
 
-#===============================================================================
-# EXTERNAL DECLARATIONS
-#===============================================================================
 
 import sys, os
 from os.path import *
 
-#===============================================================================
-# PUBLIC DECLARATIONS
-#===============================================================================
 
-#-------------------------------------------------------------------------------
-#
+
 class Image:
 
     """Class that represents an image, including its thumbnails and all
@@ -42,8 +34,7 @@ class Image:
         self.representations['__ORIG__'] = self.fn
 
 
-#-------------------------------------------------------------------------------
-#
+
 class Dir:
 
     """Class that represents a directory containing images."""
@@ -81,8 +72,7 @@ class Dir:
             dir.visit(visitor)
 
 
-#-------------------------------------------------------------------------------
-#
+
 class Visitor:
 
     def visit_image(self, image):
@@ -92,8 +82,7 @@ class Visitor:
         pass
 
 
-#-------------------------------------------------------------------------------
-#
+
 class Metadata(dict):
 
     """Simple generic interface that represents metadata for images. It is a map

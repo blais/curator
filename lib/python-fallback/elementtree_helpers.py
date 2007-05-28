@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #******************************************************************************\
 #* $Source$
 #* $Id$
@@ -16,21 +15,14 @@ Augment ElementTree with missing functionality.
 __version__ = "$Revision$"
 __author__ = "Martin Blais <blais@furius.ca>"
 
-#===============================================================================
-# EXTERNAL DECLARATIONS
-#===============================================================================
 
 import os, sys
 import textwrap
 
 from elementtree import ElementTree, ElementPath
 
-#===============================================================================
-# PUBLIC DECLARATIONS
-#===============================================================================
 
-#-------------------------------------------------------------------------------
-#
+
 def element_getiteratorp(self, tag=None, index=0, parent=None):
     """A version of Element.getiterator that also gives the parent. This is
     useful when you want to replace a node."""
@@ -48,8 +40,7 @@ def element_getiteratorp(self, tag=None, index=0, parent=None):
 
 ElementTree._Element.getiteratorp = element_getiteratorp
 
-#-------------------------------------------------------------------------------
-#
+
 def tree_findallp(self, path):
     assert self._root is not None
     if path[:1] == "/":
@@ -58,15 +49,13 @@ def tree_findallp(self, path):
 
 ElementTree.ElementTree.findallp = tree_findallp
 
-#-------------------------------------------------------------------------------
-#
+
 def element_findallp(self, path):
     return ElementPath.findallp(self, path)
 
 ElementTree._Element.findallp = element_findallp
 
-#-------------------------------------------------------------------------------
-#
+
 
 # FIXME: not sure about this code, my modifications are hacked quickly without
 # full understanding of this code, always review changes.
@@ -111,16 +100,14 @@ def path_findallp(self, element):
 
 ElementPath.Path.findallp = path_findallp
 
-#-------------------------------------------------------------------------------
-#
+
 def path_findallp_mod(element, path):
     return ElementPath._compile(path).findallp(element)
 
 ElementPath.findallp = path_findallp_mod
 
 
-#-------------------------------------------------------------------------------
-#
+
 # Formatted output.
 wrapper = textwrap.TextWrapper()
 
