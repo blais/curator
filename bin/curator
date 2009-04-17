@@ -1770,7 +1770,7 @@ def twoColumns(dstdir, images):
     print >> os, '<ul><font size=-2>'
     for i in images[ :len(images)/2 ]:
 	 print >> os, '<li><a href=\"%s\">%s</a></li>' % \
-	     ( rel(i._pagefn, dstdir), i._title )
+	     ( urlquote(rel(i._pagefn, dstdir)), i._title )
     print >> os, '</font></ul>'
 
     print >> os, '</td><td>'
@@ -1778,7 +1778,7 @@ def twoColumns(dstdir, images):
     print >> os, '<ul><font size=-2>'
     for i in images[ len(images)/2: ]:
 	 print >> os, '<li><a href=\"%s\">%s</a></li>' % \
-	     ( rel(i._pagefn, dstdir), i._title )
+	     ( urlquote(rel(i._pagefn, dstdir)), i._title )
     print >> os, '</font></ul>'
     print >> os, '</td></tr></table>'
 
@@ -1881,7 +1881,7 @@ def textnav(dstdir, image, imglist, midtext="", middest=None, pcycling=0 ):
 
     pi = prevfunc(image, imglist)
     if pi:
-        print >> os, "<a href=\"%s\">" % rel(pi._pagefn, dstdir),
+        print >> os, "<a href=%s>" % urlquote(rel(pi._pagefn, dstdir)),
         print >> os, "<font size=\"-2\">prev</font></a>"
 
     if midtext != "":
@@ -1898,7 +1898,7 @@ def textnav(dstdir, image, imglist, midtext="", middest=None, pcycling=0 ):
 
     ni = nextfunc(image, imglist)
     if ni:
-        print >> os, "<a href=\"%s\">" % rel(ni._pagefn, dstdir),
+        print >> os, "<a href=%s>" % urlquote(rel(ni._pagefn, dstdir)),
         print >> os, "<font size=\"-2\">next</font></a>"
 
     return os.getvalue()
@@ -2007,7 +2007,7 @@ fallbackTemplates[ 'template-image' ] = \
 pi = prev(image, allimages)
 if pi:
     print '<a class=\"arrow\" href=\"%s\">&lt;&lt;&lt;</a>' % \
-        rel(pi._pagefn, cd)
+        urlquote(rel(pi._pagefn, cd))
 -->
 
 </td><td width=\"50%\" align=\"right\">
@@ -2015,7 +2015,7 @@ if pi:
 ni = next(image, allimages)
 if ni:
     print '<a class=\"arrow\" href=\"%s\">&gt;&gt;&gt;</a>' % \
-        rel(ni._pagefn, cd)
+        urlquote(rel(ni._pagefn, cd))
 -->
 </td></tr></table>
 
@@ -2036,18 +2036,18 @@ if image._pagefn:
         e = w
         pi = prev(image, allimages)
         if pi:
-            print '<area shape=rect coords=\"%d,%d,%d,%d\" href=\"%s\">' % \
-                  (0, 0, w4, h, rel(pi._pagefn, cd))
+            print '<area shape=rect coords=\"%d,%d,%d,%d\" href=%s>' % \
+                  (0, 0, w4, h, urlquote(rel(pi._pagefn, cd)))
             s = w4
 
         ni = next(image, allimages)
         if ni:
-            print '<area shape=rect coords=\"%d,%d,%d,%d\" href=\"%s\">' % \
-                  (3*w4, 0, w, h, rel(ni._pagefn, cd))
+            print '<area shape=rect coords=\"%d,%d,%d,%d\" href=%s>' % \
+                  (3*w4, 0, w, h, urlquote(rel(ni._pagefn, cd)))
             e = 3*w4
 
-        print '<area shape=rect coords=\"%d,%d,%d,%d\" href=\"%s\">' % \
-              (s, 0, e, ht, rel(image._dir._pagefn, cd))
+        print '<area shape=rect coords=\"%d,%d,%d,%d\" href=%s>' % \
+              (s, 0, e, ht, urlquote(rel(image._dir._pagefn, cd)))
 
         print '</map>'
 
@@ -2129,7 +2129,7 @@ if pi:
 <b>
 <!--tag:dirnav(cd, image._dir)-->
 <!--tag:dirnavsep-->
-<a href=\"<!--tag:rel(image._filename, cd)-->\">
+<a href=<!--tag:urlquote(rel(image._filename, cd))-->>
 <!--tag:basename(image._filename)--></a>
 </b><br>
 
@@ -2146,13 +2146,13 @@ if len(image._altrepns) > 0:
 <br>
 <!--tagcode:
 print textnav(cd, image, image._dir._images,
-              \"dir\", rel(image._dir._pagefn, cd) )
+              \"dir\", urlquote(rel(image._dir._pagefn, cd)) )
 if len(image._tracks) > 0:
     print '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
     print '<span class=\"tracksind\">tracks:</span>'
     for t in image._tracks:
         print '&nbsp;&nbsp;&nbsp;&nbsp;'
-        print textnav(cd, image, trackmap[t], t, rel(trackindex_fns[t], cd) )
+        print textnav(cd, image, trackmap[t], t, urlquote(rel(trackindex_fns[t], cd)) )
 --><p>
 
 </td>
@@ -2201,9 +2201,9 @@ fallbackTemplates[ 'template-dirindex' ] = \
 </td></tr></table>
 
 <div class=\"mininav\">
-<a href=\"<!--tag:rel(rootdir._pagefn, cd)-->\">Root</a> |
-<a href=\"<!--tag:rel(allindex_fn, cd)-->\">Global</a> |
-<a href=\"<!--tag:rel(sortindex_fn, cd)-->\">Sorted</a>
+<a href=\"<!--tag:urlquote(rel(rootdir._pagefn, cd))-->\">Root</a> |
+<a href=\"<!--tag:urlquote(rel(allindex_fn, cd))-->\">Global</a> |
+<a href=\"<!--tag:urlquote(rel(sortindex_fn, cd))-->\">Sorted</a>
 </div>
 
 <!--tagcode:
@@ -2217,7 +2217,7 @@ if len( dir._subdirs ) > 0:
 
     for d in subdirs:
         print '<li><a href=\"%s\">%s</a></li>' % \
-            ( rel(d._pagefn,cd), d._basename )
+            ( urlquote(rel(d._pagefn,cd)), d._basename )
     print '</ul><p>'
 -->
 
@@ -2230,7 +2230,7 @@ if len( dir._images ) > 0:
     print '<ul>'
     for i in dir._images:
         print '<li><a href=\"%s\">%s</a></li>' % \
-            ( rel(i._pagefn, cd), i._base )
+            ( urlquote(rel(i._pagefn, cd)), i._base )
     print '</ul>'
 -->
 """ + html_postamble
@@ -2244,9 +2244,9 @@ fallbackTemplates[ 'template-trackindex' ] = \
 </td></tr></table>
 
 <div class=\"mininav\">
-<a href=\"<!--tag:rel(rootdir._pagefn, cd)-->\">Root</a> |
-<a href=\"<!--tag:rel(allindex_fn, cd)-->\">Global</a> |
-<a href=\"<!--tag:rel(sortindex_fn, cd)-->\">Sorted</a>
+<a href=\"<!--tag:urlquote(rel(rootdir._pagefn, cd))-->\">Root</a> |
+<a href=\"<!--tag:urlquote(rel(allindex_fn, cd))-->\">Global</a> |
+<a href=\"<!--tag:urlquote(rel(sortindex_fn, cd))-->\">Sorted</a>
 </div>
 
 <!--tagcode:
@@ -2270,9 +2270,9 @@ fallbackTemplates[ 'template-allindex' ] = \
 </td></tr></table>
 
 <div class=\"mininav\">
-<a href=\"<!--tag:rel(rootdir._pagefn, cd)-->\">Root</a> |
-<a href=\"<!--tag:rel(allindex_fn, cd)-->\">Global</a> |
-<a href=\"<!--tag:rel(sortindex_fn, cd)-->\">Sorted</a>
+<a href=\"<!--tag:urlquote(rel(rootdir._pagefn, cd))-->\">Root</a> |
+<a href=\"<!--tag:urlquote(rel(allindex_fn, cd))-->\">Global</a> |
+<a href=\"<!--tag:urlquote(rel(sortindex_fn, cd))-->\">Sorted</a>
 </div>
 
 <!--tagcode:
@@ -2285,7 +2285,7 @@ if len(alldirs) > 0:
         else:
             pname = '(root)'
         print '<li><a href=\"%s\">%s</a></li>' % \
-            ( rel(d._pagefn, cd), pname )
+            ( urlquote(rel(d._pagefn, cd)), pname )
     print '</ul><p>'
 -->
 
@@ -2316,9 +2316,9 @@ fallbackTemplates[ 'template-sortindex' ] = \
 </td></tr></table>
 
 <div class=\"mininav\">
-<a href=\"<!--tag:rel(rootdir._pagefn, cd)-->\">Root</a> |
-<a href=\"<!--tag:rel(allindex_fn, cd)-->\">Global</a> |
-<a href=\"<!--tag:rel(sortindex_fn, cd)-->\">Sorted</a>
+<a href=\"<!--tag:urlquote(rel(rootdir._pagefn, cd))-->\">Root</a> |
+<a href=\"<!--tag:urlquote(rel(allindex_fn, cd))-->\">Global</a> |
+<a href=\"<!--tag:urlquote(rel(sortindex_fn, cd))-->\">Sorted</a>
 </div>
 
 <!--tagcode:
@@ -2332,7 +2332,7 @@ if len(allimages) > 0:
         print '<p>'
 	print thumbImage( cd, i, 'align=\"middle\"' )
         print '<a href=\"%s\">%s</a>' % \
-            ( rel(i._pagefn, cd), i._base )
+            ( urlquote(rel(i._pagefn, cd)), i._base )
 	print
 -->
 """ + html_postamble
