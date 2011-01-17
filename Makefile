@@ -27,6 +27,7 @@ clean:
 install:	install-man
 	$(install) -d ${prefix}/bin
 	$(install) -m 755 curator ${prefix}/bin
+	$(install) -m 755 curator-hs ${prefix}/bin
 
 install-man:
 	$(install) -d ${prefix}/share/man/man1
