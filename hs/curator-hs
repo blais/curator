@@ -206,6 +206,7 @@ def main():
                             ignores=[opts.output, 'resized', 'thumbs', 'highslide']):
         logging.info("Found '%s'" % join(_root, fn))
         allfiles.append(fn)
+    allfiles.sort()
 
     # If resizing is requested, do that first.
     if opts.resize:
