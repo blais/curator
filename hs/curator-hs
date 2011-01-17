@@ -8,24 +8,28 @@ This version:
 
 - Does its work in parallel in order to process large amounts of files
 
-- Incorporates a heuristic based on time for grouping photos automatically
-
 - Uses the PIL instead of ImageMagick to generate the thumbnails
 
 - Use a simple template where only the word 'THUMBNAIL_INDEX' gets replaced;
-  easy to customize: use one of the highslide templates.
+  easy to customize: copy of the amazing highslide templates and
+  replace the example images by this tag.
 
 
-## FIXME: implement gaps heuristic and grouping
-## FIXME: this is code in-progress. Not done yet. Don't use it.
-## FIXME: TODO add captions generated from the EXIF comment
-## FIXME: TODO allow to customize output size and relative directory name
-## FIXME: also create a stupid makefile to update the thumbnails using make
-## FIXME: Create index.html symlink
-## FIXME: Add a simple 'Clean' target.
-## FIXME: do resizing from multiple threads
-## FIXME: add an option to resize the originals and include that under the gallery directory itself
+FIXME: TODO- Incorporates a heuristic based on time for grouping photos automatically
+FIXME: implement gaps heuristic and grouping
+FIXME: this is code in-progress. Not done yet. Don't use it.
+FIXME: TODO add captions generated from the EXIF comment
+FIXME: TODO allow to customize output size and relative directory name
+FIXME: also create a stupid makefile to update the thumbnails using make
+FIXME: Create index.html symlink
+FIXME: Add a simple 'Clean' target.
+FIXME: do resizing from multiple threads
+FIXME: add an option to resize the originals and include that under the gallery directory itself
+FIXME: insert gaps for directories
 """
+__author__ = 'Martin Blais <blais@furius.ca>'
+__license__ = 'GNU GPL v2'
+
 import re, os, logging, threading
 import Queue
 from StringIO import StringIO
@@ -38,7 +42,8 @@ from PIL import Image # You need to install PIL (Python Imaging Library)
 
 
 # Location of resources (templates and support files to copy).
-_resources = abspath(join(dirname(dirname(__file__)), 'share', 'hs'))
+# Should be in the same place as the script itself.
+_resources = dirname(realpath(__file__))
 
 
 def find_files(root_, regexp, ignores=[]):
@@ -67,7 +72,10 @@ def find_files(root_, regexp, ignores=[]):
 def insuredir(dn):
     "Insure the given directory exists."
     if not exists(dn):
-        os.makedirs(dn)
+        try:
+            os.makedirs(dn)
+        except OSError:
+            pass # Possibly called from multiple threads.
 
 def resize_image(_infn, _outfn, size, force):
     if force or not exists(_outfn) or getmtime(_outfn) < getmtime(_infn):
@@ -93,7 +101,7 @@ def main():
     parser.add_option('-o', '--output', action='store', default='gallery',
                       help="Name of output directory (relative to root)")
 
-    parser.add_option('-s', '--thumb-size', action='store', type='int',
+    parser.add_option('-s', '--thumb-size', action='store', type='int', default=128,
                       help="Desired size of thumbnails")
 
     parser.add_option('-f', '--force', action='store_true',
@@ -160,7 +168,7 @@ def main():
     # Copy the useful part of highslide we need.
     _highdir = join(_output, 'highslide')
     if not exists(_highdir):
-        copytree(join(_resources, 'highslide', 'highslide'), _highdir)
+        copytree(join(_resources, 'highslide'), _highdir)
 
     # Generate an HTML index from the template.
     entries = []
