@@ -20,10 +20,9 @@
 <div class="contents topic" id="table-of-contents">
 <p class="topic-title first">Table of Contents</p>
 <ul class="simple">
-<li><a class="reference internal" href="#description" id="id1">Description</a><ul>
-<li><a class="reference internal" href="#motivation" id="id2">Motivation</a></li>
-<li><a class="reference internal" href="#features" id="id3">Features</a></li>
-<li><a class="reference internal" href="#notes" id="id4">Notes</a></li>
+<li><a class="reference internal" href="#description" id="id2">Description</a><ul>
+<li><a class="reference internal" href="#motivation" id="id3">Motivation</a></li>
+<li><a class="reference internal" href="#features" id="id4">Features</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#documentation" id="id5">Documentation</a><ul>
@@ -43,44 +42,46 @@
 </ul>
 </div>
 <div class="section" id="description">
-<h1><a class="toc-backref" href="#id1">Description</a></h1>
-<p>Curator is a powerful script that allows one to generate web page image
-galleries with the intent of displaying photographic images on the Web, or for a
-CD-ROM presentation or archiving.</p>
-<p>It generates static web pages only - no special configuration or running scripts
-are required on the server. The script supports many file formats, hierarchical
-directories, thumbnail generation and update, per-image description file with
-any attributes, and 'tracks' of images spanning multiple directories.</p>
-<p>The templates consist of HTML with embedded Python. Running this script only
-requires a recent Python interpreter and the ImageMagick tools. If you've been
-looking for a simple yet very powerful script to do this task you've come to the
-right place.</p>
+<h1><a class="toc-backref" href="#id2">Description</a></h1>
+<p>Curator/HS is a simple script that allows one to generate HTML image
+galleries with the intent of displaying photographic images on the
+Web, or for a CD-ROM presentation, or for archiving.</p>
+<p>It generates static web pages only - no special configuration or
+running of scripts are required on the server. The script supports
+hierarchical directories, thumbnail generation, automatic resizing.
+Its output leverages the <a class="reference external" href="HighslideJS:http://highslide.com/">Highslide JS</a> library for a slick design.</p>
+<p>It can be templated with a single file fo HTML with simple keywords in
+them. Running this script only requires a recent Python interpreter
+and the PIL (Python Imaging Library).</p>
+<div class="important">
+<p class="first admonition-title">Important</p>
+<p class="last">I've rewritten curator on 2011-01-16 to make it use Highslide JS,
+the result is much simpler and I made other improvements and
+simplifications along the way. Use <cite>curator-hs</cite> for an improved
+experience.</p>
+</div>
 <div class="section" id="motivation">
-<h2><a class="toc-backref" href="#id2">Motivation</a></h2>
-<p>There are many other worthy similar systems on the web. It seems everyone and
-their sister has been writing an image gallery generation script these days. Why
-did I write my own, mind you ask? Most of the existing ones required server
-customizations (PHP, cgi scripts) and thus will not work off of an archive
-CDROM, or required some annoying installation of some special image manipulation
-packages, or didn't support templating. Besides, I really wanted the
-<em>tracks</em> feature, and when I started diddling a prototype for the embedded
-Python execution within the template HTML, I thought it was so cool, I just had
-to do it.</p>
+<h2><a class="toc-backref" href="#id3">Motivation</a></h2>
+<p>There are many gallery generator on the internet. It seems everyone
+and their brother has been writing an image gallery generation script
+these days. Why did I write my own? Most of the existing ones required
+server customizations (PHP, cgi scripts) and will not work off of a
+simple archive CDROM, or required some annoying installation of some
+special image manipulation packages, or didn't support templating.
+Problems problems problems. I just wanted something simple.</p>
 <p>Another way to view the services that this script provides is this:</p>
 <ul class="simple">
-<li>it gathers a per-directory, per-track, and global index of a hierarchy of
-files;</li>
-<li>templates for each file, directory, track, all, are processed with embedded
-python code in the template running in a specialized environment for the page
-to generate, including access to the per-file attributes;</li>
-<li>it knows about some image-specific stuff (thumbnails, alternate
-representations)</li>
+<li>it gathers the input files</li>
+<li>optionally, it generates scaled-down versions of the images</li>
+<li>it generates all the thumbnails</li>
+<li>it puts all those contents under a single directory 'gallery' with
+an HTML index</li>
+<li>all the links are relative, so you should be able archive and serve
+the files from anywhere</li>
 </ul>
-<p>You could probably easily retarget it to some other application (e.g. viewing
-hierarchies of animations, text files, mp3's, etc.).</p>
 </div>
 <div class="section" id="features">
-<h2><a class="toc-backref" href="#id3">Features</a></h2>
+<h2><a class="toc-backref" href="#id4">Features</a></h2>
 <p>This script was written with the following requirements/goals/features:</p>
 <ul>
 <li><p class="first">on the client side: nothing more should be required than a <strong>web browser</strong> to
@@ -94,63 +95,28 @@ HTML);</p>
 or moved);</p>
 </li>
 <li><p class="first">the output HTML should be <strong>templated/themeable</strong> (i.e. the user can change
-the look of the output HTML). In fact, the templates themselves are written
-with embedded Python code in the HTML, the possibilities are endless;</p>
-</li>
-<li><p class="first">each photograph can have arbitrary attributes associated to it, in a
-<strong>per-image attributes file</strong>. The script simply makes these available to the
-template code to take advantage of. For example, this is how you can include
-photo description, EXIF camera settings, or any other user-define attribute
-(just write a template that uses those);</p>
+the look of the output HTML);</p>
 </li>
 <li><p class="first"><strong>thumbnails</strong> should be generated automatically, the thumbnails reside
 alongside the photos themselves;</p>
-</li>
-<li><p class="first">can be created to fill in variables in the templates (e.g. title, description,
-camera settings, other);</p>
-</li>
-<li><p class="first"><strong>tracks</strong> of images, independent (and across) of directories can be generated
-using the attributes file. The script compiles these list of images and
-they're available to the templates. This could be used, for example, to links
-are your &quot;people&quot;, or &quot;black and white&quot; images together, each photograph can
-be part of one or more tracks;</p>
-</li>
-<li><p class="first">a <strong>global</strong>, <strong>per-track</strong> and <strong>per-directory</strong> index page should be
-generated;</p>
 </li>
 <li><p class="first">it should be <strong>simple to use</strong> (it should be able to work with a simple
 hierarchy of image files, with a trivial invocation, try it now, if it don't
 work, I've failed);</p>
 </li>
-<li><p class="first">we're not assuming that the names of the files are unique across the hierarchy
-(for digital camera images);</p>
-</li>
-<li><p class="first">supports <strong>many file formats</strong>;</p>
-</li>
-<li><p class="first">it should be <strong>trivial to install, and portable</strong> (i.e. should not use more
+<li><p class="first">it should be <strong>trivial to install and portable</strong> (i.e. should not use more
 than what is available in base installs of most linux distributions).  In this
 respect, thus this script only depends on the availability of:</p>
 <blockquote>
 <ul class="simple">
 <li>Python, version 2 or more;</li>
-<li>ImageMagick tools;</li>
+<li>Python Imaging Library (PIL);</li>
 </ul>
 </blockquote>
 </li>
 </ul>
-<p>There is no special library to install, no special tools, nothing. Download and
-run. This runs on a default redhat install. There is a switch for supporting old
-versions of the ImageMagick tools.</p>
-<div class="note">
-<p class="first admonition-title">Note</p>
-<p class="last">Note that curator does not resize the large digital camera images to a
-viewable size automatically.  We have planned a redesign which will allow to
-integrate this feature elegantly and generically.</p>
-</div>
-</div>
-<div class="section" id="notes">
-<h2><a class="toc-backref" href="#id4">Notes</a></h2>
-<p>This program packages <a class="reference external" href="http://home.cfl.rr.com/genecash/digital_camera.html">Gene Cash's EXIF.py library</a>.</p>
+<p>There is no special library to install, no special tools, nothing.
+Download and run. This runs on a default redhat install.</p>
 </div>
 </div>
 <div class="section" id="documentation">
@@ -158,11 +124,6 @@ integrate this feature elegantly and generically.</p>
 <ul class="simple">
 <li><a class="reference external" href="CHANGES">CHANGES</a> (recent changes, history);</li>
 <li><a class="reference external" href="TODO">TODO</a></li>
-<li><a class="reference external" href="http://sourceforge.net/tracker/?group_id=31897">Reporting Bugs</a>
-(<strong>please</strong> use the sourceforge bug tracker, do <strong>not</strong> send email
-for bugs)</li>
-<li><a class="reference external" href="share/demo/dirindex.html">Example Output</a></li>
-<li><a class="reference external" href="doc/redesign.html">Redesign documentation (2004-03-23)</a></li>
 </ul>
 <div class="section" id="invocation">
 <h2><a class="toc-backref" href="#id6">Invocation</a></h2>
@@ -187,14 +148,15 @@ required inputs and of what the script generates.</p>
 much to run or to view the pages.</p>
 <ul class="simple">
 <li>Python-2.3 or greater;</li>
-<li>ImageMagick or PIL (Python Imaging Library);</li>
+<li>PIL (Python Imaging Library);</li>
 </ul>
 </div>
 <div class="section" id="portability">
 <h2><a class="toc-backref" href="#id10">Portability</a></h2>
-<p>curator will run under any platform that has a Python2 (or more) interpreter and
-the ImageMagick tools. It has been tested under Linux and IRIX.  curator is
-known to have worked under Windows using the PIL (tested on 2003-11).</p>
+<p>curator will run under any platform that has a Python2 (or more)
+interpreter and the ImageMagick tools. It has been tested under Linux
+and IRIX. curator is known to have worked under Windows using the PIL
+(tested on 2003-11).</p>
 </div>
 </div>
 <div class="section" id="contributions">
@@ -208,19 +170,11 @@ known to have worked under Windows using the PIL (tested on 2003-11).</p>
 <li><a class="reference external" href="http://www.freshmeat.net/projects/curator">Freshmeat Appindex</a></li>
 <li>Getting <a class="reference external" href="http://python.org">Python</a></li>
 <li>Getting <a class="reference external" href="http://www.imagemagick.org">ImageMagick</a></li>
-<li>Extracting camera settings from EXIF JPEG's (can easily be integrated with
-curator):<ul>
-<li><a class="reference external" href="http://pyexif.sourceforge.net">PyExif</a></li>
-<li><a class="reference external" href="http://home.cfl.rr.com/genecash/digital_camera.html">Gene Cash's EXIF.py</a></li>
-<li><a class="reference external" href="http://topo.math.u-psud.fr/~bousch/exifdump.py">exifdump.py</a></li>
-<li><a class="reference external" href="http://exif-tools.sourceforge.net">Exif-Tools.</a></li>
-</ul>
-</li>
 </ul>
 </div>
 <div class="section" id="copyright-and-license">
 <h1><a class="toc-backref" href="#id13">Copyright and License</a></h1>
-<p>Copyright (C) 2001-2004  Martin Blais.  All Rights Reserved.</p>
+<p>Copyright (C) 2001-2011  Martin Blais.  All Rights Reserved.</p>
 <p>This code is distributed under the <a class="reference external" href="COPYING">GNU General Public License</a>;</p>
 </div>
 <div class="section" id="author">
