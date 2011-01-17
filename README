@@ -152,8 +152,10 @@ required inputs and of what the script generates.
 Download
 ========
 
-- Download `releases from SourceForge
-  <http://sourceforge.net/project/showfiles.php?group_id=31897>`_;
+Mercurial repository at https://hg.furius.ca/public/curator
+(Instructions__)
+
+__ /web-furius/downloading.html
 
 
 Installation
