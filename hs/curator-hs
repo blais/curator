@@ -182,6 +182,9 @@ def main():
     parser.add_option('-t', '--template', action='store', default=join(_resources, 'index.html'),
                       help="Specify a custom HighSlide template filename to use.")
 
+    parser.add_option('--title', action='store',
+                      help="Add a title to the top of the page. (Default is no title.)")
+
     opts, args = parser.parse_args()
     logging.basicConfig(level=logging.INFO,
                         format='%(levelname)-8s: %(message)s')
@@ -194,6 +197,8 @@ def main():
     _root = abspath(args[0])
     if not exists(_root):
         parser.error("Input directory '%s' does not exist." % _root)
+    if not exists(opts.template):
+        parser.error("Custom template file '%s' does not exist." % opts.template)
 
     # Compute output directory location.
     _output = abspath(join(_root, opts.output))
@@ -238,6 +243,9 @@ def main():
     template = open(opts.template).read()
     template, linktmpl = parse_template(template)
 
+    template = re.sub(r'\bTITLE\b', opts.title or 'Photo Gallery', template)
+    template = re.sub(r'\bTITLE_HEAD\b', opts.title or '', template)
+
     # Generate an HTML index from the highslide template.
     entries = []
     prevdn = None
@@ -249,7 +257,11 @@ def main():
 
         url = choproot(fn) if opts.resize else join('..', fn)
         thumbfn = choproot(thumbfn)
-        entries.append(linktmpl.replace('URL', url).replace('THUMB', thumbfn))
+        tmpl = linktmpl
+        tmpl = tmpl.replace('URL', url)
+        tmpl = tmpl.replace('THUMB', thumbfn)
+        entries.append(tmpl)
+
 
     template = template.replace('{LINKS}', os.linesep.join(entries))
     open(join(_output, 'index.html'), 'w').write(template)
