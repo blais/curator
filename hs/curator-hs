@@ -58,6 +58,11 @@ from PIL import Image # You need to install PIL (Python Imaging Library)
 
 # Location of resources (templates and support files to copy).
 _resources = os.environ.get('CURATOR_HS_DIR', dirname(realpath(__file__)))
+if basename(_resources) != 'hs':
+    # If we're not running from source, use a default path congruent with
+    # various Linux distributions. This is where the resources should get
+    # installed.
+    _resources = '/usr/share/curator/hs'
 
 
 def find_files(root_, regexp, ignores=[]):
@@ -179,7 +184,8 @@ def main():
     parser.add_option('-j', '--jobs', action='store', type='int', default=1, metavar='NBJOBS',
                       help="Specific the nb. of parallel image conversion jobs to run.")
 
-    parser.add_option('-t', '--template', action='store', default=join(_resources, 'index.html'),
+    parser.add_option('-t', '--template', action='store',
+                      default=join(_resources, 'templates', 'default.html'),
                       help="Specify a custom HighSlide template filename to use.")
 
     parser.add_option('--title', action='store',

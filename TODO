@@ -2,6 +2,21 @@
 TODO: curator
 =============
 
+curator-hs:
+
+  * Create subdirs indexes hierarchy under gallery/dirs
+
+  * Don't ignore conversion errors: don't stop, but report them all
+    once again at the end. "The following inmages could not be converted:"
+
+  * Place all the templates under /hs/templates
+
+  * Create install instructions for packagers
+
+
+
+
+----------------------------------------------------------------------
 
 - JavaScript shortcuts for next and previous would be amazingly nice!
 
