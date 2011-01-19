@@ -44,6 +44,9 @@ __license__ = 'GNU GPL v2'
 ## FIXME/TODO: Automatically check the size of thumbnails (not have to say --force)
 ## FIXME/TODO: Add captions generated in the EXIF tags, PIL supports them.
 ## FIXME/TODO: Incorporate gap heuristic directly in here, for other people.
+## FIXME/TODO: Create subdirs indexes hierarchy under gallery/dirs
+## FIXME/TODO: Don't ignore conversion errors: don't stop, but report them all
+## once again at the end. "The following inmages could not be converted:"
 
 import re, os, logging, threading, signal
 import Queue
