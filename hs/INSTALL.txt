@@ -1,0 +1,20 @@
+==========================================================
+   Installation & Packaging Instructions for curator-hs
+==========================================================
+
+In January 2011 I rewrote curator into a brand new version called
+'curator-hs' that uses Highslide JS. You may discontinute the old
+version, and I will stop maintaining it. The new version will be
+maintained and is much simpler.
+
+All the new files are located under curator/hs:
+
+  Install  curator/hs/curator-hs   to   /usr/bin/curator-hs
+
+  Copy the  'curator/hs' directory   to   /usr/share/curator/hs
+
+That should be it. the script knows to look for
+'/usr/share/curator/hs' if it is not running from source.
+
+
+
