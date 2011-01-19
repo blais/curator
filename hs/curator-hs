@@ -41,12 +41,8 @@ Example usage:
 """
 __author__ = 'Martin Blais <blais@furius.ca>'
 __license__ = 'GNU GPL v2'
-## FIXME/TODO: Automatically check the size of thumbnails (not have to say --force)
 ## FIXME/TODO: Add captions generated in the EXIF tags, PIL supports them.
-## FIXME/TODO: Incorporate gap heuristic directly in here, for other people.
 ## FIXME/TODO: Create subdirs indexes hierarchy under gallery/dirs
-## FIXME/TODO: Don't ignore conversion errors: don't stop, but report them all
-## once again at the end. "The following inmages could not be converted:"
 
 import re, os, logging, threading, signal
 import Queue
@@ -109,16 +105,31 @@ def decorate(fn, deco):
     dn, fn = os.path.split(fn)
     return join(dn, '%s.%s' % (deco, fn))
 
-def resize_image(_infn, _outfn, size, force):
+def resize_image(_infn, _outfn, size, force, errors):
     "Do resize an image, if necessary."
-    if force or not exists(_outfn) or getmtime(_outfn) < getmtime(_infn):
+    doconvert = force 
+    if not doconvert:
+        if exists(_outfn):
+            if getmtime(_outfn) < getmtime(_infn):
+                doconvert = True
+            else:
+                try:
+                    om = Image.open(_outfn)
+                    doconvert = size not in om.size
+                except IOError, e:
+                    doconvert = True
+        else:
+            doconvert = True
+
+    if doconvert:
         logging.info("Generating image: '%s'" % _outfn)
         insuredir(dirname(_outfn))
         try:
             im = Image.open(_infn)
             im.thumbnail((size, size), Image.ANTIALIAS)
         except IOError, e:
-            logging.error("Error opening or reading '%s': %s" % (_infn, str(e)))
+            logging.error("Error converting '%s': %s" % (_infn, str(e)))
+            errors.append( (_infn, _outfn, e) )
             return
         try:
             im.save(_outfn, "JPEG")
@@ -154,7 +165,8 @@ def process_jobs(joblist, nbjobs):
             t.setDaemon(True)
             t.start()
         try:
-            jobqueue.join()
+            ## jobqueue.join()
+            [t.join() for t in threads]
         except KeyboardInterrupt:
             try:
                 while 1: # empty the queue
@@ -233,12 +245,15 @@ def main():
                             ignores=[opts.output, 'resized', 'thumbs', 'highslide']):
         logging.info("Found '%s'" % join(_root, fn))
         allfiles.append(fn)
-    allfiles.sort()
+
+    # Sort files case-insensitively (this is more intuitive for most cases of images).
+    allfiles.sort(key=str.lower)
 
     # If resizing is requested, do that first.
+    errors = []
     if opts.resize:
         insuredir(join(_output, 'resized'))
-        joblist = [(resize_image, join(_root, fn), decorate(join(_output, 'resized', fn), 'resized'), opts.resize, opts.force)
+        joblist = [(resize_image, join(_root, fn), decorate(join(_output, 'resized', fn), 'resized'), opts.resize, opts.force, errors)
                    for fn in allfiles]
         process_jobs(joblist, opts.jobs)
 
@@ -252,7 +267,7 @@ def main():
             fn = decorate(join(opts.output, 'resized', fn), 'resized')
         conversions.append( (_root, fn, thumbfn) )
 
-    joblist = [(resize_image, join(_root, fn), join(_root, thumbfn), opts.thumb_size, opts.force)
+    joblist = [(resize_image, join(_root, fn), join(_root, thumbfn), opts.thumb_size, opts.force, errors)
                for _root, fn, thumbfn in conversions]
     process_jobs(joblist, opts.jobs)
 
@@ -289,8 +304,14 @@ def main():
     indexfn = join(_output, 'index.html')
     open(indexfn, 'w').write(template)
 
-    logging.info("Done (generated all files under '%s')" % _output)
+    logging.info("Done (generated files under '%s')" % _output)
 
+    # Repeat the list of errors once again.
+    if errors:
+        logging.error("The following files has errors during conversion:")
+        for _infn, _, e in errors:
+            logging.error("  '%s' : error was '%s'" % (_infn, str(e)))
+        
     if opts.browse:
         logging.info("Opening in browser: '%s'" % indexfn)
         import webbrowser
