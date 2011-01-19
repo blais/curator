@@ -45,7 +45,7 @@ __license__ = 'GNU GPL v2'
 ## FIXME/TODO: Add captions generated in the EXIF tags, PIL supports them.
 ## FIXME/TODO: Incorporate gap heuristic directly in here, for other people.
 
-import re, os, logging, threading
+import re, os, logging, threading, signal
 import Queue
 from StringIO import StringIO
 from os.path import *
@@ -146,8 +146,18 @@ def process_jobs(joblist, nbjobs):
     else:
         threads = [threading.Thread(target=worker, args=(jobqueue,))
                    for _ in xrange(nbjobs)]
-        [t.start() for t in threads]
-        [t.join() for t in threads]
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+        for t in threads:
+            t.setDaemon(True)
+            t.start()
+        try:
+            jobqueue.join()
+        except KeyboardInterrupt:
+            try:
+                while 1: # empty the queue
+                    jogqueue.get_nowait()
+            except Queue.Empty:
+                pass
 
 def parse_template(template):
     """ Read an HTML file and look for <!-- begin --> and <!-- end --> markers
