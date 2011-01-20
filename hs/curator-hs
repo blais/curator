@@ -44,7 +44,7 @@ __license__ = 'GNU GPL v2'
 ## FIXME/TODO: Add captions generated in the EXIF tags, PIL supports them.
 ## FIXME/TODO: Create subdirs indexes hierarchy under gallery/dirs
 
-import re, os, logging, threading, signal
+import sys, re, os, logging, threading, signal
 import Queue
 from StringIO import StringIO
 from os.path import *
@@ -188,6 +188,19 @@ def parse_template(template):
     linktmpl = template[mo1.end():mo2.start()]
     return out, linktmpl
 
+# Note: this could be expanded to contain more targets of convenience.
+_makefile = """\
+#!/usr/bin/env make
+
+ROOT = ..
+
+redo:
+	cd $(ROOT) ; COMMAND
+"""
+
+def origcommand():
+    return ' '.join('"%s"' % x if ' ' in x else x for x in sys.argv)
+
 
 def main():
     import optparse
@@ -299,10 +312,15 @@ def main():
         tmpl = tmpl.replace('THUMB', thumbfn)
         entries.append(tmpl)
 
-
     template = template.replace('{LINKS}', os.linesep.join(entries))
     indexfn = join(_output, 'index.html')
+    logging.info("Generating index: '%s')" % indexfn)
     open(indexfn, 'w').write(template)
+
+    makefn = join(_output, 'Makefile')
+    logging.info("Generating Makefile: '%s')" % makefn)
+    makefile = _makefile.replace('COMMAND', origcommand())
+    open(makefn, 'w').write(makefile)
 
     logging.info("Done (generated files under '%s')" % _output)
 
