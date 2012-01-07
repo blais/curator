@@ -21,7 +21,7 @@ hs.transitions = ['expand', 'crossfade'];
 hs.fadeInOut = true;
 hs.dimmingOpacity = 0.8;
 hs.outlineType = 'rounded-white';
-hs.captionEval = 'this.thumb.alt';
+hs.captionEval = 'this.thumb.title';
 hs.marginBottom = 105; // make room for the thumbstrip and the controls
 hs.numberPosition = 'caption';
 
@@ -57,7 +57,7 @@ hs.addSlideshow({
 
 <!-- begin -->
 <a href="URL" class="highslide" onclick="return hs.expand(this)">
-<img src="THUMB"/></a>
+<img src="THUMB" title="TITLE" /></a>
 <!-- end -->
 
 

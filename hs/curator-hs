@@ -41,7 +41,6 @@ Example usage:
 """
 __author__ = 'Martin Blais <blais@furius.ca>'
 __license__ = 'GNU GPL v2'
-## FIXME/TODO: Add captions generated in the EXIF tags, PIL supports them.
 ## FIXME/TODO: Create subdirs indexes hierarchy under gallery/dirs
 
 import sys, re, os, logging, threading, signal
@@ -50,7 +49,11 @@ from StringIO import StringIO
 from os.path import *
 from shutil import copytree
 from PIL import Image # You need to install PIL (Python Imaging Library)
-
+try:
+    import pyexiv2
+except ImportError:
+    pyexiv2 = None
+    
 # Important note: in all the code below, variables for absolute paths begin
 # with an underscore, e.g. output (relative) vs, _output (absolute).
 
@@ -201,7 +204,28 @@ redo:
 def origcommand():
     return ' '.join('"%s"' % x if ' ' in x else x for x in sys.argv)
 
+def getcomment(fn):
+    "Try to get the comment from the image."
+    # First try to get the JPEG comment from the image.
+    im = Image.open(fn)
+    comment = im.app.get('COM', '')
 
+    # If not set, try to get the comment from the EXIF tags.
+    if not comment and pyexiv2 is not None:
+        metadata = pyexiv2.ImageMetadata(fn)
+        metadata.read()
+        comment = metadata['Exif.Photo.UserComment']
+        if comment and comment.value:
+            comment = comment.value
+
+    # Clean up the comment.
+    if comment:
+        if isinstance(comment, unicode):
+            comment = comment.encode('utf-8')
+        comment = re.sub('\n', ' ', comment).strip().rstrip('\x00')
+
+    return comment
+            
 def main():
     import optparse
     parser = optparse.OptionParser(__doc__.strip())
@@ -273,15 +297,17 @@ def main():
     # Generate all the necessary thumbnails.
     insuredir(join(_output, 'thumbs'))
     conversions = []
-    for fn in allfiles:
-        thumbfn = decorate(join(opts.output, 'thumbs', fn), 'thumbnail')
+    for origfn in allfiles:
+        thumbfn = decorate(join(opts.output, 'thumbs', origfn), 'thumbnail')
         # Build thumbnails much faster off the smaller resized images.
         if opts.resize:
-            fn = decorate(join(opts.output, 'resized', fn), 'resized')
-        conversions.append( (_root, fn, thumbfn) )
+            fn = decorate(join(opts.output, 'resized', origfn), 'resized')
+        else:
+            fn = origfn
+        conversions.append( (_root, origfn, fn, thumbfn) )
 
     joblist = [(resize_image, join(_root, fn), join(_root, thumbfn), opts.thumb_size, opts.force, errors)
-               for _root, fn, thumbfn in conversions]
+               for _root, origfn, fn, thumbfn in conversions]
     process_jobs(joblist, opts.jobs)
 
     # Copy the useful part of highslide we need.
@@ -299,17 +325,19 @@ def main():
     # Generate an HTML index from the highslide template.
     entries = []
     prevdn = None
-    for _root, fn, thumbfn in conversions:
+    for _root, origfn, fn, thumbfn in conversions:
         dn = dirname(fn)
         if dn != prevdn:
             entries.append('<div style="height: %spx"> </div>' % (opts.thumb_size/2))
             prevdn = dn
 
+        comment = getcomment(origfn)
         url = choproot(fn) if opts.resize else join('..', fn)
         thumbfn = choproot(thumbfn)
         tmpl = linktmpl
         tmpl = tmpl.replace('URL', url)
         tmpl = tmpl.replace('THUMB', thumbfn)
+        tmpl = tmpl.replace('TITLE', comment)
         entries.append(tmpl)
 
     template = template.replace('{LINKS}', os.linesep.join(entries))
