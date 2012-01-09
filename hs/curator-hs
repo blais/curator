@@ -214,7 +214,7 @@ def getcomment(fn):
     if not comment and pyexiv2 is not None:
         metadata = pyexiv2.ImageMetadata(fn)
         metadata.read()
-        comment = metadata['Exif.Photo.UserComment']
+        comment = metadata.get('Exif.Photo.UserComment', None)
         if comment and comment.value:
             comment = comment.value
 
@@ -223,6 +223,10 @@ def getcomment(fn):
         if isinstance(comment, unicode):
             comment = comment.encode('utf-8')
         comment = re.sub('\n', ' ', comment).strip().rstrip('\x00')
+
+        # We also need to replace double-quotes, because the comment will be set
+        # as an XML attribute.
+        comment = comment.replace('"', "&quot;")
 
     return comment
             
@@ -337,7 +341,7 @@ def main():
         tmpl = linktmpl
         tmpl = tmpl.replace('URL', url)
         tmpl = tmpl.replace('THUMB', thumbfn)
-        tmpl = tmpl.replace('TITLE', comment)
+        tmpl = tmpl.replace('TITLE', comment or '')
         entries.append(tmpl)
 
     template = template.replace('{LINKS}', os.linesep.join(entries))
