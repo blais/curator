@@ -337,9 +337,11 @@ def main():
 
         comment = getcomment(origfn)
         url = choproot(fn) if opts.resize else join('..', fn)
+        orig = join('..', origfn)
         thumbfn = choproot(thumbfn)
         tmpl = linktmpl
         tmpl = tmpl.replace('URL', url)
+        tmpl = tmpl.replace('ORIG', orig)
         tmpl = tmpl.replace('THUMB', thumbfn)
         tmpl = tmpl.replace('TITLE', comment or '')
         entries.append(tmpl)
