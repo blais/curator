@@ -208,8 +208,8 @@ def getcomment(fn):
     "Try to get the comment from the image."
     # First try to get the JPEG comment from the image.
     im = Image.open(fn)
-    comment = im.app.get('COM', '')
-
+    comment = im.app.get('COM', '') if hasattr(im, 'app') else ''
+    
     # If not set, try to get the comment from the EXIF tags.
     if not comment and pyexiv2 is not None:
         metadata = pyexiv2.ImageMetadata(fn)
