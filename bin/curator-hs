@@ -1,1 +1,339 @@
-../hs/curator-hs
+#!/usr/bin/env python
+"""
+Curator-HighSlide, a much improved and simplified version of curator, the static
+image gallery generator.
+
+This version:
+
+- Uses only static files and relative urls/links (like the original version).
+- Uses a newer design based on Torstein Hoensi's amazing highslide.js
+- Does its work in parallel in order to process large amounts of files
+- Uses the PIL instead of ImageMagick to generate the thumbnails
+- Use a simple template where only image links get replaced;
+  easy to customize: copy of the amazing highslide templates and
+  replace the example images by this tag.
+- Has the ability to resize original images built-in.
+
+Example usage:
+
+   Generate a gallery under 'Photos/gallery', linking to the original files:
+
+     curator-hs Photos
+
+   Generate larger thumbnails, running 4 threads in parallel:
+
+     curator-hs --thumb-size=192 --jobs=4  Photos
+
+   Later on, force regeneration of smaller thumbnails:
+
+     curator-hs --thumb-size=128 --force  Photos
+
+   Resize all originals to 800 pixels on the longest edge, and link to those
+   resized instead of the original (the generated gallery directory is
+   self-contained; you can zip it and put it on a server):
+
+     curator-hs --resize=800
+
+   Use a custom template index file:
+
+     curator-hs --template=/path/to/myindex.html
+
+"""
+__author__ = 'Martin Blais <blais@furius.ca>'
+__license__ = 'GNU GPL v2'
+## FIXME/TODO: Add captions generated in the EXIF tags, PIL supports them.
+## FIXME/TODO: Create subdirs indexes hierarchy under gallery/dirs
+
+import sys, re, os, logging, threading, signal
+import Queue
+from StringIO import StringIO
+from os.path import *
+from shutil import copytree
+from PIL import Image # You need to install PIL (Python Imaging Library)
+
+# Important note: in all the code below, variables for absolute paths begin
+# with an underscore, e.g. output (relative) vs, _output (absolute).
+
+
+# Location of resources (templates and support files to copy).
+_resources = os.environ.get('CURATOR_HS_DIR', dirname(realpath(__file__)))
+if basename(_resources) != 'hs':
+    # If we're not running from source, use a default path congruent with
+    # various Linux distributions. This is where the resources should get
+    # installed.
+    _resources = '/usr/share/curator/hs'
+
+
+def find_files(root_, regexp, ignores=[]):
+    """ Find and generate all filenames."""
+    if isinstance(regexp, str):
+        regexp = re.compile(regexp)
+
+    ignores = [(re.compile(i) if isinstance(i, str) else i)
+               for i in ignores]
+
+    root_ = abspath(root_)
+    rem = len(root_)+1
+    for root, dirs, files in os.walk(root_):
+        dirs[:] = [d for d in dirs
+                   if not any(ire.search(d) for ire in ignores)]
+        afiles = [join(root, x) for x in files]
+
+        afiles = [basename(f) for f in afiles
+                  if not any(ire.search(f) for ire in ignores)]
+        for fn in afiles:
+            if not regexp.match(fn):
+                continue
+            yield root_, join(root, fn)[rem:]
+
+def insuredir(dn):
+    "Insure the given directory exists."
+    if not exists(dn):
+        try:
+            os.makedirs(dn)
+        except OSError:
+            pass # Possibly called from multiple threads.
+
+def choproot(fn):
+    """ Remove the root directory name of the given path."""
+    return re.subn('.*?%s' % os.sep, '', fn, 1)[0]
+
+def decorate(fn, deco):
+    """ Modify the given filename to make it unique. Unique names on your
+    filesystem--albeit long-- is a nice thing, especially if you process your
+    files with scripts."""
+    dn, fn = os.path.split(fn)
+    return join(dn, '%s.%s' % (deco, fn))
+
+def resize_image(_infn, _outfn, size, force, errors):
+    "Do resize an image, if necessary."
+    doconvert = force 
+    if not doconvert:
+        if exists(_outfn):
+            if getmtime(_outfn) < getmtime(_infn):
+                doconvert = True
+            else:
+                try:
+                    om = Image.open(_outfn)
+                    doconvert = size not in om.size
+                except IOError, e:
+                    doconvert = True
+        else:
+            doconvert = True
+
+    if doconvert:
+        logging.info("Generating image: '%s'" % _outfn)
+        insuredir(dirname(_outfn))
+        try:
+            im = Image.open(_infn)
+            im.thumbnail((size, size), Image.ANTIALIAS)
+        except IOError, e:
+            logging.error("Error converting '%s': %s" % (_infn, str(e)))
+            errors.append( (_infn, _outfn, e) )
+            return
+        try:
+            im.save(_outfn, "JPEG")
+        except IOError:
+            # gif files cannot be converted properly as jpeg, try again with an indexed format.
+            im.save(_outfn, "PNG")
+    else:
+        logging.info("Reusing image:    '%s'" % _outfn)
+
+def worker(jobqueue):
+    """ A worker thread that resizes images popped from the queue.
+    Exits when the queue is empty."""
+    try:
+        while 1:
+            job = jobqueue.get_nowait()
+            fun = job[0]; fun(*job[1:])
+    except Queue.Empty:
+        pass
+
+def process_jobs(joblist, nbjobs):
+    if not joblist:
+        return
+    jobqueue = Queue.Queue()
+    for job in joblist:
+        jobqueue.put(job)
+    if nbjobs == 1:
+        worker(jobqueue)
+    else:
+        threads = [threading.Thread(target=worker, args=(jobqueue,))
+                   for _ in xrange(nbjobs)]
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+        for t in threads:
+            t.setDaemon(True)
+            t.start()
+        try:
+            ## jobqueue.join()
+            [t.join() for t in threads]
+        except KeyboardInterrupt:
+            try:
+                while 1: # empty the queue
+                    jogqueue.get_nowait()
+            except Queue.Empty:
+                pass
+
+def parse_template(template):
+    """ Read an HTML file and look for <!-- begin --> and <!-- end --> markers
+    that define the format of an image link. This is a really poor man's
+    templating system, but just what we need here, no more."""
+
+    mo1 = re.search('<!-- begin -->', template)
+    mo2 = re.search('<!-- end -->', template)
+    if None in (mo1, mo2):
+        raise SyntaxError("Invalid template is missing the link format.")
+
+    out = template[:mo1.start()] + '{LINKS}' + template[mo2.end():]
+    linktmpl = template[mo1.end():mo2.start()]
+    return out, linktmpl
+
+# Note: this could be expanded to contain more targets of convenience.
+_makefile = """\
+#!/usr/bin/env make
+
+ROOT = ..
+
+redo:
+	cd $(ROOT) ; COMMAND
+"""
+
+def origcommand():
+    return ' '.join('"%s"' % x if ' ' in x else x for x in sys.argv)
+
+
+def main():
+    import optparse
+    parser = optparse.OptionParser(__doc__.strip())
+
+    parser.add_option('-o', '--output', action='store', default='gallery', metavar='DIR',
+                      help="Name of output directory (relative to root)")
+
+    parser.add_option('-s', '--thumb-size', action='store', type='int', default=128, metavar='PIXELS',
+                      help="Desired size of thumbnails")
+
+    parser.add_option('-S', '--resize', action='store', type='int', metavar='PIXELS',
+                      help=("Resize the originals to the given size and generate the gallery "
+                            "for the resized versions instead of the originals."))
+
+    parser.add_option('-f', '--force', action='store_true',
+                      help="Regenerate everything; don't try to reuse converted images.")
+
+    parser.add_option('-j', '--jobs', action='store', type='int', default=1, metavar='NBJOBS',
+                      help="Specific the nb. of parallel image conversion jobs to run.")
+
+    parser.add_option('-t', '--template', action='store',
+                      default=join(_resources, 'templates', 'default.html'),
+                      help="Specify a custom HighSlide template filename to use.")
+
+    parser.add_option('--title', action='store',
+                      help="Add a title to the top of the page. (Default is no title.)")
+
+    parser.add_option('-b', '--browse', action='store_true',
+                      help="Open a browser after processing (see env. BROWSER).")
+
+    opts, args = parser.parse_args()
+    logging.basicConfig(level=logging.INFO,
+                        format='%(levelname)-8s: %(message)s')
+
+    # Validate arguments and insure we have a single directory.
+    if len(args) == 0:
+        args = ['.']
+    elif len(args) > 1:
+        parser.error("Usage: [DIR]")
+    _root = abspath(args[0])
+    if not exists(_root):
+        parser.error("Input directory '%s' does not exist." % _root)
+    if not exists(opts.template):
+        parser.error("Custom template file '%s' does not exist." % opts.template)
+
+    # Compute output directory location.
+    _output = abspath(join(_root, opts.output))
+    logging.info("Output will be stored in '%s'" % _output)
+    insuredir(_output)
+
+    # Find the entire list of relative filenames.
+    allfiles = []
+    for _, fn in find_files(_root, re.compile('.*\.(jpe?g|png|gif|bmp)$', re.I),
+                            ignores=[opts.output, 'resized', 'thumbs', 'highslide']):
+        logging.info("Found '%s'" % join(_root, fn))
+        allfiles.append(fn)
+
+    # Sort files case-insensitively (this is more intuitive for most cases of images).
+    allfiles.sort(key=str.lower)
+
+    # If resizing is requested, do that first.
+    errors = []
+    if opts.resize:
+        insuredir(join(_output, 'resized'))
+        joblist = [(resize_image, join(_root, fn), decorate(join(_output, 'resized', fn), 'resized'), opts.resize, opts.force, errors)
+                   for fn in allfiles]
+        process_jobs(joblist, opts.jobs)
+
+    # Generate all the necessary thumbnails.
+    insuredir(join(_output, 'thumbs'))
+    conversions = []
+    for fn in allfiles:
+        thumbfn = decorate(join(opts.output, 'thumbs', fn), 'thumbnail')
+        # Build thumbnails much faster off the smaller resized images.
+        if opts.resize:
+            fn = decorate(join(opts.output, 'resized', fn), 'resized')
+        conversions.append( (_root, fn, thumbfn) )
+
+    joblist = [(resize_image, join(_root, fn), join(_root, thumbfn), opts.thumb_size, opts.force, errors)
+               for _root, fn, thumbfn in conversions]
+    process_jobs(joblist, opts.jobs)
+
+    # Copy the useful part of highslide we need.
+    _highdir = join(_output, 'highslide')
+    if not exists(_highdir):
+        copytree(join(_resources, 'highslide'), _highdir)
+
+    # Parse the link format from the template.
+    template = open(opts.template).read()
+    template, linktmpl = parse_template(template)
+
+    template = re.sub(r'\bTITLE\b', opts.title or 'Photo Gallery', template)
+    template = re.sub(r'\bTITLE_HEAD\b', opts.title or '', template)
+
+    # Generate an HTML index from the highslide template.
+    entries = []
+    prevdn = None
+    for _root, fn, thumbfn in conversions:
+        dn = dirname(fn)
+        if dn != prevdn:
+            entries.append('<div style="height: %spx"> </div>' % (opts.thumb_size/2))
+            prevdn = dn
+
+        url = choproot(fn) if opts.resize else join('..', fn)
+        thumbfn = choproot(thumbfn)
+        tmpl = linktmpl
+        tmpl = tmpl.replace('URL', url)
+        tmpl = tmpl.replace('THUMB', thumbfn)
+        entries.append(tmpl)
+
+    template = template.replace('{LINKS}', os.linesep.join(entries))
+    indexfn = join(_output, 'index.html')
+    logging.info("Generating index: '%s')" % indexfn)
+    open(indexfn, 'w').write(template)
+
+    makefn = join(_output, 'Makefile')
+    logging.info("Generating Makefile: '%s')" % makefn)
+    makefile = _makefile.replace('COMMAND', origcommand())
+    open(makefn, 'w').write(makefile)
+
+    logging.info("Done (generated files under '%s')" % _output)
+
+    # Repeat the list of errors once again.
+    if errors:
+        logging.error("The following files has errors during conversion:")
+        for _infn, _, e in errors:
+            logging.error("  '%s' : error was '%s'" % (_infn, str(e)))
+        
+    if opts.browse:
+        logging.info("Opening in browser: '%s'" % indexfn)
+        import webbrowser
+        webbrowser.open(indexfn)
+
+if __name__ == '__main__':
+    main()
