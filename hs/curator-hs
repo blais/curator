@@ -53,7 +53,7 @@ try:
     import pyexiv2
 except ImportError:
     pyexiv2 = None
-    
+
 # Important note: in all the code below, variables for absolute paths begin
 # with an underscore, e.g. output (relative) vs, _output (absolute).
 
@@ -69,6 +69,7 @@ if basename(_resources) != 'hs':
 
 def find_files(root_, regexp, ignores=[]):
     """ Find and generate all filenames."""
+
     if isinstance(regexp, str):
         regexp = re.compile(regexp)
 
@@ -81,7 +82,6 @@ def find_files(root_, regexp, ignores=[]):
         dirs[:] = [d for d in dirs
                    if not any(ire.search(d) for ire in ignores)]
         afiles = [join(root, x) for x in files]
-
         afiles = [basename(f) for f in afiles
                   if not any(ire.search(f) for ire in ignores)]
         for fn in afiles:
@@ -110,7 +110,7 @@ def decorate(fn, deco):
 
 def resize_image(_infn, _outfn, size, force, errors):
     "Do resize an image, if necessary."
-    doconvert = force 
+    doconvert = force
     if not doconvert:
         if exists(_outfn):
             if getmtime(_outfn) < getmtime(_infn):
@@ -209,7 +209,7 @@ def getcomment(fn):
     # First try to get the JPEG comment from the image.
     im = Image.open(fn)
     comment = im.app.get('COM', '') if hasattr(im, 'app') else ''
-    
+
     # If not set, try to get the comment from the EXIF tags.
     if not comment and pyexiv2 is not None:
         metadata = pyexiv2.ImageMetadata(fn)
@@ -229,7 +229,7 @@ def getcomment(fn):
         comment = comment.replace('"', "&quot;")
 
     return comment
-            
+
 def main():
     import optparse
     parser = optparse.OptionParser(__doc__.strip())
@@ -282,8 +282,8 @@ def main():
 
     # Find the entire list of relative filenames.
     allfiles = []
-    for _, fn in find_files(_root, re.compile('.*\.(jpe?g|png|gif|bmp)$', re.I),
-                            ignores=[opts.output, 'resized', 'thumbs', 'highslide']):
+    for _, fn in find_files(_root, re.compile(r'.*\.(jpe?g|png|gif|bmp)$', re.I),
+                            ignores=['resized', 'thumbs', 'highslide']):
         logging.info("Found '%s'" % join(_root, fn))
         allfiles.append(fn)
 
@@ -363,7 +363,7 @@ def main():
         logging.error("The following files has errors during conversion:")
         for _infn, _, e in errors:
             logging.error("  '%s' : error was '%s'" % (_infn, str(e)))
-        
+
     if opts.browse:
         logging.info("Opening in browser: '%s'" % indexfn)
         import webbrowser
