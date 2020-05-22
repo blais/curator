@@ -50,6 +50,6 @@ to do this task you've come to the right place.""",
       author="Martin Blais",
       author_email="blais@furius.ca",
       url="http://curator.sourceforge.net",
-      download_url="http://bitbucket.org/blais/curator",
+      download_url="http://github.com/blais/curator",
       scripts = ['bin/curator-hs', 'bin/curator']
      )
