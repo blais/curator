@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #******************************************************************************\
 #* $Source$
 #* $Id: curator 235 2005-04-01 05:29:42Z blais $
@@ -198,14 +198,16 @@ if int(sys.version[0]) < 2:
         "Error: you need Python version 2 or more to run this friggin' script.")
     sys.exit(1)
 
-import os, os.path, dircache
+import os, os.path
 from os.path import join, dirname, basename, normpath, splitext
 from os.path import isfile, islink, isdir, exists
+import functools
+import subprocess
 
 import re, string
-import StringIO
+import io
 from pprint import pprint, pformat
-from urllib import quote as urlquote
+from urllib.parse import quote as urlquote
 
 import imghdr
 import stat
@@ -255,11 +257,11 @@ class FCache:
         # write out cache
         try:
             f = open(self.cachefn, 'w')
-            for e in self.entries.values():
-                print >> f, '"%s" %d %d: %s' % (e.fn, e.mtime, e.size, e.info)
+            for e in list(self.entries.values()):
+                print('"%s" %d %d: %s' % (e.fn, e.mtime, e.size, e.info), file=f)
             f.close()
         except IOError:
-            print >> sys.stderr, "Error writing out cache"
+            print("Error writing out cache", file=sys.stderr)
 
     def lookup(self, fn):
         try:
@@ -276,14 +278,14 @@ class FCache:
     def dump(self):
         if not opts.quiet:
             return None
-        print "Cache filename:", self.cachefn
-        print
-        for e in self.entries.values():
-            print "filename:", e.fn
-            print "mtime:", e.mtime
-            print "size:", e.size
-            print "info:", e.info
-            print
+        print("Cache filename:", self.cachefn)
+        print()
+        for e in list(self.entries.values()):
+            print("filename:", e.fn)
+            print("mtime:", e.mtime)
+            print("size:", e.size)
+            print("info:", e.info)
+            print()
 
 
 #===============================================================================
@@ -298,7 +300,7 @@ def splitpath(path):
     This function works around a quirk in string.split()."""
 
     # FIXME perhaps call os.path.split repetitively would be better.
-    s = string.split( path, '/' ) # we work with fwd slash only inside.
+    s = str.split( path, '/' ) # we work with fwd slash only inside.
     if len( s ) == 1 and s[0] == "":
         s = []
     return s
@@ -321,11 +323,11 @@ def rel(dest, curdir):
     if len( sc ) == 0 and len( sd ) == 0:
         out = ""
     elif len( sc ) == 0:
-        out = apply( join, sd )
+        out = join(*sd)
     elif len( sd ) == 0:
-        out = apply( join, map( lambda x: os.pardir, sc ) )
+        out = join(*[os.pardir for x in sc])
     else:
-        out = apply( join, map( lambda x: os.pardir, sc ) + list( sd ) )
+        out = join(*[os.pardir for x in sc] + list( sd ))
 
     # make sure the path is suitable for html consumption
     return out
@@ -413,7 +415,7 @@ def getMagickProg(progname):
 
     """Returns the program name to execute for an ImageMagick command."""
 
-    if magick_path_cache.has_key( progname ):
+    if progname in magick_path_cache:
         p = magick_path_cache[ progname ]
     else:
         if opts.magick_path:
@@ -427,10 +429,8 @@ def getMagickProg(progname):
         # Issue a warning if we can't find the program where specified.
         if opts.magick_path:
             if not exists( prg ) and not exists( prg + '.exe' ):
-                print >> sys.stderr,\
-                      "Warning: can't stat ImageMagick program %s" % prg
-                print >> sys.stderr, \
-                      "Perhaps try specifying it using --magick-path."
+                print("Warning: can't stat ImageMagick program %s" % prg, file=sys.stderr)
+                print("Perhaps try specifying it using --magick-path.", file=sys.stderr)
 
         p = prg
 
@@ -467,9 +467,8 @@ class AttrFile:
             f = open( self._path, "r" )
             self._lines = f.read()
             f.close()
-        except IOError, e:
-            print >> sys.stderr, \
-                  "Error: cannot open attributes file", self._path
+        except IOError as e:
+            print("Error: cannot open attributes file", self._path, file=sys.stderr)
             self._lines = ''
 
         self.parse( self._lines )
@@ -500,15 +499,15 @@ class AttrFile:
                 return
 
             f = open( self._path, "w" )
-            for k in self._attrmap.keys():
+            for k in list(self._attrmap.keys()):
                 f.write( k )
                 f.write( ": " )
                 f.write( self._attrmap[k] )
                 f.write( "\n\n" )
             f.close()
-        except IOError, e:
-            print >> sys.stderr, "Error: cannot open attributes file", \
-                  self._path
+        except IOError as e:
+            print("Error: cannot open attributes file", \
+                  self._path, file=sys.stderr)
             self._lines = ''
 
     #---------------------------------------------------------------------------
@@ -548,7 +547,7 @@ class AttrFile:
         """Returns an attribute field content extracted from this attributes
         file."""
 
-        if self._attrmap.has_key( field ):
+        if field in self._attrmap:
             return self._attrmap[ field ]
         else:
             raise KeyError()
@@ -560,7 +559,7 @@ class AttrFile:
         """Returns an attribute field content extracted from this attributes
         file."""
 
-        if self._attrmap.has_key( field ):
+        if field in self._attrmap:
             return self._attrmap[ field ]
         else:
             return default
@@ -573,7 +572,7 @@ class AttrFile:
         changed.  Set a field value to None to remove the field."""
 
         if value == None:
-            if self._attrmap.has_key( field ):
+            if field in self._attrmap:
                 del self._attrmap[ field ]
                 self._dirty = 1
                 return 1
@@ -600,7 +599,7 @@ class AttrFile:
         if '\n' in value:
             value = '\n' + value
 
-        if self._attrmap.has_key( field ):
+        if field in self._attrmap:
             if self._attrmap[ field ] == value:
                 return 0
 
@@ -616,12 +615,12 @@ class AttrFile:
     #---------------------------------------------------------------------------
     #
     def keys(self):
-        return self._attrmap.keys()
+        return list(self._attrmap.keys())
 
     #---------------------------------------------------------------------------
     #
     def has_key(self, key):
-        return self._attrmap.has_key(key)
+        return key in self._attrmap
 
     #---------------------------------------------------------------------------
     #
@@ -635,7 +634,7 @@ class AttrFile:
         """Returns contents to a string for debugging purposes."""
 
         txt = ""
-        for a in self._attrmap.keys():
+        for a in list(self._attrmap.keys()):
             txt += a + ":\n" + self._attrmap[a] + "\n\n"
         return txt
 
@@ -649,6 +648,11 @@ class AttrFile:
 #===============================================================================
 # CLASS Dir
 #===============================================================================
+
+@functools.lru_cache(32)
+def cached_listdir(d):
+     return os.listdir(d)
+
 
 class Dir:
 
@@ -673,14 +677,14 @@ class Dir:
 
         self._pagefn = None # to be computed outside according to policies
 
-        files = dircache.listdir( join( root, path ) )
+        files = cached_listdir( join( root, path ) )
 
         pattr = join( root, self._path, dirattr_fn )
         if exists( pattr ) and isfile( pattr ):
             self._attrfile = AttrFile( pattr )
             self._attrfile.read()
-            if self._attrfile.keys():
-                if opts.quiet: print "  read attributes", self._attrfile.keys()
+            if list(self._attrfile.keys()):
+                if opts.quiet: print("  read attributes", list(self._attrfile.keys()))
 
         imgmap = {}
         for f in files:
@@ -702,7 +706,7 @@ class Dir:
 
                 # perhaps ignore file
                 if opts.ignore_pattern and opts.ignore_re.search( af ):
-                    if opts.quiet: print "ignoring file", af
+                    if opts.quiet: print("ignoring file", af)
                     continue
 
                 # check for separator
@@ -731,32 +735,30 @@ class Dir:
                     img._salts.append( ext )
 
         # Detect thumbnails, imagepages, attributes files.
-        for i in imgmap.keys():
+        for i in list(imgmap.keys()):
             e = imgmap[i]
-            if opts.quiet: print "looking for images with base '%s'" % \
-                  join(e._dir._path, e._base)
+            if opts.quiet: print("looking for images with base '%s'" % \
+                  join(e._dir._path, e._base))
             e.cleanAlts()
             if not e.selectName( join( root, path ) ):
                 del imgmap[i]
-            print
+            print()
 
-        for f in imgmap.keys():
+        for f in list(imgmap.keys()):
             img = imgmap[f]
             img.init( self._attrfile )
             if img._ignore:
                 if opts.quiet:
-                    print "ignoring", img._base, "from desc file ignore tag."
+                    print("ignoring", img._base, "from desc file ignore tag.")
                 continue
             self._images.append( img )
 
-        def cmp_img(a, b):
-            return cmp( a._base, b._base )
-        self._images.sort( cmp_img )
+        self._images.sort(key=lambda x: x._base)
 
         # compute directory files' trackmap (incomplete tracks, just to get
         # the list of keys)
         mmap = computeTrackmap( self._images )
-        self._tracks = mmap.keys().sort()
+        self._tracks = list(mmap.keys()).sort()
 
     #---------------------------------------------------------------------------
     #
@@ -809,13 +811,13 @@ class Dir:
 def Dir_cmpdates(dir1, dir2):
     """Compare two subdirectories by date."""
 
-    t1, t2 = map(lambda x: os.stat(x._path).st_ctime, [dir1, dir2])
+    t1, t2 = [os.stat(x._path).st_ctime for x in [dir1, dir2]]
     c = cmp(t1, t2)
     if c != 0:
         return c
     return cmp(dir1, dir2)
 
-    
+
 #===============================================================================
 # CLASS Image
 #===============================================================================
@@ -862,8 +864,8 @@ class Image:
             if exists( pattr ) and isfile( pattr ):
                 attr = AttrFile( pattr )
                 attr.read()
-                if attr.keys():
-                    if opts.quiet: print "  read attributes", attr.keys()
+                if list(attr.keys()):
+                    if opts.quiet: print("  read attributes", list(attr.keys()))
 
                 self._attr = attr
 
@@ -879,8 +881,7 @@ class Image:
                 try:
                     self.handleDescription( a )
                 except:
-                    print >> sys.stderr, \
-                          "Error: in attributes file %s" % a._path
+                    print("Error: in attributes file %s" % a._path, file=sys.stderr)
 
         # no title, so use something unique to the image, it's path
         if not self._title:
@@ -913,7 +914,7 @@ class Image:
         # Detect html files, remove them in the altrepn
         try:
             idx = self._salts.index( opts.htmlext )
-            if opts.quiet: print "  detected existing imagepage '%s'" % opts.htmlext
+            if opts.quiet: print("  detected existing imagepage '%s'" % opts.htmlext)
             del self._salts[idx]
         except ValueError:
             pass
@@ -921,7 +922,7 @@ class Image:
         # Detect attributes files, remove them in the altrepn
         try:
             idx = self._salts.index( opts.attrext )
-            if opts.quiet: print "  detected attributes file '%s'" % opts.attrext
+            if opts.quiet: print("  detected attributes file '%s'" % opts.attrext)
             self._attr = self._salts[idx]
             del self._salts[idx]
         except ValueError:
@@ -930,7 +931,7 @@ class Image:
         # Detect thumb file, separate them from altrepns
         for k in self._calts:
             if k.startswith( opts.thumb_sfx ):
-                if opts.quiet: print "  detected thumb file '%s'" % k
+                if opts.quiet: print("  detected thumb file '%s'" % k)
                 self._thumbfn = k
                 self._calts.remove( k )
                 break
@@ -942,7 +943,7 @@ class Image:
         """Select base file (image file) for image page generation. Returns true
         if it could find a suitable one."""
 
-        if opts.quiet: print "  ", self._salts + self._calts
+        if opts.quiet: print("  ", self._salts + self._calts)
 
         #
         # choose one representation for the imagepage
@@ -963,10 +964,10 @@ class Image:
                             self._calts.remove( f )
                             ( self._repn, self._ext ) = splitext( f )
 
-                        if opts.quiet: print "  choosing affinity '%s'" % f
+                        if opts.quiet: print("  choosing affinity '%s'" % f)
                         return 1
                     else:
-                        if opts.quiet: print "  ignoring non-image '%s'" % f
+                        if opts.quiet: print("  ignoring non-image '%s'" % f)
 
         # 2) the first of the base files which is an image file
         if opts.use_repn:
@@ -987,12 +988,12 @@ class Image:
                 else:
                     self._calts.remove( f )
                     ( self._repn, self._ext ) = splitext( f )
-                if opts.quiet: print "  choosing imagefile '%s'" % f
+                if opts.quiet: print("  choosing imagefile '%s'" % f)
                 return 1
             else:
-                if opts.quiet: print "  ignoring non-image '%s'" % f
+                if opts.quiet: print("  ignoring non-image '%s'" % f)
 
-        if opts.quiet: print "  no imagepage for base '%s'" % self._base
+        if opts.quiet: print("  no imagepage for base '%s'" % self._base)
         return 0
 
     #---------------------------------------------------------------------------
@@ -1003,7 +1004,7 @@ class Image:
 
         tracks = attrfile.get_def( 'tracks' )
         if tracks:
-            intracks = string.split( tracks )
+            intracks = str.split( tracks )
             self._tracks = []
             for i in intracks:
                 if i not in self._tracks:
@@ -1035,9 +1036,9 @@ class Image:
         athumbfn = join( opts.root, img._thumbfn )
 
         if opts.thumb_force:
-            if opts.quiet: print "forced regeneration of '%s'" % img._thumbfn
+            if opts.quiet: print("forced regeneration of '%s'" % img._thumbfn)
         elif not exists(athumbfn):
-            if opts.quiet: print "thumbnail absent '%s'" % img._thumbfn
+            if opts.quiet: print("thumbnail absent '%s'" % img._thumbfn)
         else:
             # Check if thumbsize has changed
             if not opts.fast:
@@ -1045,29 +1046,29 @@ class Image:
                 if not checkThumbSize( img._size,\
                                        img._thumbsize, \
                                        opts.thumb_size ):
-                    if opts.quiet: print "thumbnail '%s size has changed" % img._thumbfn
+                    if opts.quiet: print("thumbnail '%s size has changed" % img._thumbfn)
                     try:
                         # Clear cache for thumbnail size.
                         del imageSizeCache[ athumbfn ]
                     except:
                         pass
                 else:
-                    if opts.quiet: print "thumbnail '%s' already generated (size ok)" \
-                          % img._thumbfn
+                    if opts.quiet: print("thumbnail '%s' already generated (size ok)" \
+                          % img._thumbfn)
                     return
             else:
-                if opts.quiet: print "thumbnail '%s' already generated" % img._thumbfn
+                if opts.quiet: print("thumbnail '%s' already generated" % img._thumbfn)
                 return
 
         if opts.no_magick:
-            if opts.quiet: print "ImageMagick tools disabled, can't create thumbnail"
+            if opts.quiet: print("ImageMagick tools disabled, can't create thumbnail")
             return
 
         # create necessary directories
         d = dirname(athumbfn)
         if not exists(d):
             os.makedirs(d)
-            
+
         if opts.pil:
 
             try:
@@ -1076,60 +1077,63 @@ class Image:
                 im.save(athumbfn)
 
                 img._thumbsize = im.size
-            except IOError, e:
+            except IOError as e:
                 raise SystemExit(\
                     "Error: identifying file '%s'" % aimgfn + str(e))
 
         else:
-    
+
             cmd = getMagickProg('convert') + ' -border 2x2 '
             # FIXME check if this is a problem if not specified
             #cmd += '-interlace NONE '
-    
+
             cmd += '-geometry %dx%d ' % ( opts.thumb_size, opts.thumb_size )
-    
+
             if opts.thumb_quality:
                 cmd += '-quality %d ' % opts.thumb_quality
-    
+
             # This doesn't add text into the picture itself, just the comment in
             # the header.
             if opts.copyright:
                 cmd += '-comment \"%s\" ' % opts.copyright
-    
+
             # We use [1] to extract the thumbnail when there is one.
             # It is harmless otherwise.
             subimg = ""
             if img._ext.lower() in [ ".jpg", ".tif", ".tiff" ]:
                 subimg = "[1]"
-    
+
             cmd += '"%s%s" "%s"' % ( aimgfn, subimg, athumbfn )
-    
-            if opts.quiet: print "generating thumbnail '%s'" % img._thumbfn
-    
-            (chin, chout, cherr) = os.popen3( cmd )
+
+            if opts.quiet: print("generating thumbnail '%s'" % img._thumbfn)
+
+            p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE,
+                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                 close_fds=True)
+            (chin,
+             chout,
+             cherr) = (p.stdin, p.stdout, p.stderr)
             errs = cherr.readlines()
             chout.close()
             cherr.close()
             if errs:
-                print >> sys.stderr, \
-                      "Error: running convert program on %s:" % aimgfn
-                errs = string.join(errs, '\n')
-                print errs
-    
+                print("Error: running convert program on %s:" % aimgfn, file=sys.stderr)
+                errs = str.join(errs, '\n')
+                print(errs)
+
                 if subimg and \
                        re.compile('Unable to read subimage').search(errs):
-                    if opts.quiet: print "retrying without subimage"
-                    cmd = string.replace(cmd,subimg,"")
-    
+                    if opts.quiet: print("retrying without subimage")
+                    cmd = str.replace(cmd,subimg,"")
+
                     (chin, chout, cherr) = os.popen3( cmd )
                     errs = cherr.readlines()
                     chout.close()
                     cherr.close()
                     if errs:
-                        print >> sys.stderr, \
-                              "Error: running convert program on %s:" % aimgfn
-                        print string.join(errs, '\n')
-    
+                        print("Error: running convert program on %s:" % aimgfn, file=sys.stderr)
+                        print(string.join(errs, '\n'))
+
             else:
                 img._thumbsize = imageSize(athumbfn)
 
@@ -1168,7 +1172,7 @@ def imageSizeNoCache(filename):
         try:
             im = PilImage.open(fn)
             s = im.size
-        except IOError, e:
+        except IOError as e:
             raise SystemExit("Error: identifying file '%s'" % fn + str(e))
 
         return s
@@ -1180,15 +1184,13 @@ def imageSizeNoCache(filename):
         po = os.popen( cmd )
         output = po.read()
         try:
-            ( width, height ) = map( lambda x: int(x), string.split( output ) )
+            ( width, height ) = [int(x) for x in str.split( output )]
         except ValueError:
-            print >> sys.stderr, \
-                  "Error: parsing identify output on %s" % fn
+            print("Error: parsing identify output on %s" % fn, file=sys.stderr)
             return ( 0, 0  )
         err = po.close()
         if err:
-            print >> sys.stderr, \
-                  "Error: running identify program on %s" % fn
+            print("Error: running identify program on %s" % fn, file=sys.stderr)
             return ( 0, 0 )
         return ( width, height )
 
@@ -1200,19 +1202,17 @@ def imageSizeNoCache(filename):
         output = po.read()
         err = po.close()
         if err:
-            print >> sys.stderr, \
-                  "Error: running identify program on %s" % fn
+            print("Error: running identify program on %s" % fn, file=sys.stderr)
             return ( 0, 0 )
 
         mre = re.compile( "([0-9]+)x([0-9]+)" )
-        mo = mre.match( string.split( output )[1] )
+        mo = mre.match( str.split( output )[1] )
         if not mo:
-            mo = mre.match( string.split( output )[2] )
+            mo = mre.match( str.split( output )[2] )
         if mo:
-            ( width, height ) = map( lambda x: int(x), mo.groups() )
+            ( width, height ) = [int(x) for x in mo.groups()]
             return ( width, height )
-        print >> sys.stderr, \
-              "Warning: could not identify size for image '%s'" % filename
+        print("Warning: could not identify size for image '%s'" % filename, file=sys.stderr)
         return ( 0, 0 )
 
 
@@ -1278,8 +1278,8 @@ def generatePage(fn, ttype, envir):
         execTemplate( tfile, templates[ttype], envir )
         tfile.close()
 
-    except IOError, e:
-        print >> sys.stderr, "Error: can't open file: %s" % fn
+    except IOError as e:
+        print("Error: can't open file: %s" % fn, file=sys.stderr)
 
 #-------------------------------------------------------------------------------
 #
@@ -1300,7 +1300,7 @@ def generateSummary(fn, allimages):
         if i._title:
             l += i._title
         # Make sure it's on a single line
-        l = string.replace( l, '\n', ' ' )
+        l = str.replace( l, '\n', ' ' )
         otext += l + '\n'
 
     # Write out file.
@@ -1310,8 +1310,8 @@ def generateSummary(fn, allimages):
         tfile.write( otext )
         tfile.close()
 
-    except IOError, e:
-        print >> sys.stderr, "Error: can't open file: %s" % fn
+    except IOError as e:
+        print("Error: can't open file: %s" % fn, file=sys.stderr)
 
 #===============================================================================
 # TEMPLATE PARSING AND EXECUTION
@@ -1378,8 +1378,8 @@ def readTemplates():
             tfile = open( opts.rc, "r" )
             orc = tfile.read()
             tfile.close()
-        except IOError, e:
-            print >> sys.stderr, "Error: can't open user rc file:", opts.rc
+        except IOError as e:
+            print("Error: can't open user rc file:", opts.rc, file=sys.stderr)
             sys.exit(1)
 
         o = compileCode( '', orc, opts.rc )
@@ -1405,7 +1405,7 @@ def readTemplate(tfn):
     """Reads a template file.
     This method expects an simple filename."""
 
-    if opts.verbose: print "fetching template", tfn
+    if opts.verbose: print("fetching template", tfn)
 
     found = 0
     foundInRoot = 0
@@ -1413,14 +1413,14 @@ def readTemplate(tfn):
     # check in user-specified template root.
     if opts.templates:
         fn = join( opts.templates, tfn )
-        if opts.verbose: print "  looking in %s" % fn
+        if opts.verbose: print("  looking in %s" % fn)
         if exists( fn ):
             found = 1
 
     # check in hierarchy root
     if not found:
         fn = join( opts.root, tfn )
-        if opts.verbose: print "  looking in %s" % fn
+        if opts.verbose: print("  looking in %s" % fn)
         if exists( fn ):
             foundInRoot = 1
             found = 1
@@ -1429,10 +1429,10 @@ def readTemplate(tfn):
     if not found:
         try:
             curatorPath = os.environ[ 'CURATOR_TEMPLATE' ]
-            pathlist = string.split( curatorPath, os.pathsep )
+            pathlist = str.split( curatorPath, os.pathsep )
             for p in pathlist:
                 fn = join( p, tfn )
-                if opts.verbose: print "  looking in %s" % fn
+                if opts.verbose: print("  looking in %s" % fn)
                 if exists( fn ):
                     found = 1
                     break
@@ -1445,15 +1445,15 @@ def readTemplate(tfn):
             tfile = open( fn, "r" )
             t = tfile.read()
             tfile.close()
-        except IOError, e:
-            print >> sys.stderr, "Error: can't open image template file:", fn
+        except IOError as e:
+            print("Error: can't open image template file:", fn, file=sys.stderr)
             sys.exit(1)
-        if opts.verbose: print "  succesfully loaded template", tfn
+        if opts.verbose: print("  succesfully loaded template", tfn)
 
     else:
         # bah... can't load it, use fallback templates
         if opts.verbose:
-            print "  falling back on simplistic default templates."
+            print("  falling back on simplistic default templates.")
         global fallbackTemplates
         try:
             t = fallbackTemplates[ splitext( tfn )[0] ]
@@ -1463,25 +1463,24 @@ def readTemplate(tfn):
     # Save templates in root, if it was requested.
     if opts.save_templates and foundInRoot == 0:
         rootfn = join( opts.root, tfn )
-        if opts.verbose: print "  saving template in %s" % rootfn
+        if opts.verbose: print("  saving template in %s" % rootfn)
 
         # saving the file template
         if exists( rootfn ):
             bakfn = join( opts.root, tfn + '.bak' )
-            if opts.verbose: print "  making backup in %s" % bakfn
+            if opts.verbose: print("  making backup in %s" % bakfn)
             import shutil
             try:
                 shutil.copy( rootfn, bakfn )
             except:
-                print >> sys.stderr, \
-                      "Error: can't copy backup template %s", bakfn
+                print("Error: can't copy backup template %s", bakfn, file=sys.stderr)
 
         try:
             ofile = open( rootfn, "w" )
             ofile.write(t)
             ofile.close()
-        except IOError, e:
-            print >> sys.stderr, "Error: can't save template file to", rootfn
+        except IOError as e:
+            print("Error: can't save template file to", rootfn, file=sys.stderr)
 
     return t
 
@@ -1500,9 +1499,8 @@ def compileCode(pretext, codetext, filename):
     except:
         o = [ pretext, None, codetext ]
 
-        print >> sys.stderr, \
-              "Error compiling template in the following code:"
-        print >> sys.stderr, codetext
+        print("Error compiling template in the following code:", file=sys.stderr)
+        print(codetext, file=sys.stderr)
 
         try:
             etype, value, tb = sys.exc_info()
@@ -1512,7 +1510,7 @@ def compileCode(pretext, codetext, filename):
         if not opts.ignore_errors:
             errors = 1
 
-        print >> sys.stderr
+        print(file=sys.stderr)
     return o
 
 
@@ -1533,7 +1531,7 @@ def compileTemplate(ttext, filename):
             break
         mo2 = mre2.search( ttext, mo1.end() )
         if not mo2:
-            print >> sys.stderr, "Error: unfinished tag."
+            print("Error: unfinished tag.", file=sys.stderr)
             sys.exit(1)
 
         pretext = ttext[ pos : mo1.start() ]
@@ -1581,9 +1579,8 @@ def execTemplate(outfile, olist, envir):
                 #    ss.ignoreNextChar()
 
             except:
-                print >> sys.stderr, \
-                      "Error executing template in the following code:"
-                print >> sys.stderr, o[2]
+                print("Error executing template in the following code:", file=sys.stderr)
+                print(o[2], file=sys.stderr)
 
                 try:
                     etype, value, tb = sys.exc_info()
@@ -1593,7 +1590,7 @@ def execTemplate(outfile, olist, envir):
                 if not opts.ignore_errors:
                     errors = 1
 
-                print >> sys.stderr
+                print(file=sys.stderr)
 
 
     if errors == 1 and not opts.ignore_errors:
@@ -1614,7 +1611,7 @@ def computeTrackmap(imagelist):
     tracks = {}
     for i in imagelist:
         for t in i._tracks:
-            if not tracks.has_key( t ):
+            if t not in tracks:
                 tracks[ t ] = []
             tracks[ t ].append( i )
     return tracks
@@ -1632,23 +1629,23 @@ def clean(allimages, alldirs):
         htmlfn = join( opts.root, img._dir._path, img._pagefn )
         if exists( htmlfn ):
             if opts.verbose:
-                print "Deleting", htmlfn
+                print("Deleting", htmlfn)
             try:
                 os.unlink( htmlfn )
             except:
-                print >> sys.stderr, "Error: deleting", htmlfn
+                print("Error: deleting", htmlfn, file=sys.stderr)
 
         # Delete thumbnails
         if img._thumbfn:
             thumbfn = join(opts.root, img._thumbfn)
             if exists( thumbfn ):
                 if opts.verbose:
-                    print "Deleting", thumbfn
+                    print("Deleting", thumbfn)
                 try:
                     os.unlink( thumbfn )
                     img._thumbfn = None
                 except:
-                    print >> sys.stderr, "Error: deleting", thumbfn
+                    print("Error: deleting", thumbfn, file=sys.stderr)
 
     for d in alldirs:
         files = dircache.listdir( join(opts.root, d._path) )
@@ -1660,12 +1657,12 @@ def clean(allimages, alldirs):
                       sortindex_fn, css_fn ] or \
                f.startswith( 'trackindex-' ):
                 if opts.verbose:
-                    print "Deleting", fn
+                    print("Deleting", fn)
                 try:
                     os.unlink( fn )
                     pass
                 except:
-                    print >> sys.stderr, "Error: deleting", fn
+                    print("Error: deleting", fn, file=sys.stderr)
 
             if f == index_fn and islink(fn):
                 os.unlink(fn)
@@ -1728,7 +1725,7 @@ def table(dstdir, images, textfun=None, cols=4):
     if len(images) == 0:
         return ""
 
-    os = StringIO.StringIO()
+    os = io.StringIO()
     idx = 0
     while idx < len(images):
 
@@ -1740,24 +1737,24 @@ def table(dstdir, images, textfun=None, cols=4):
             idx += len(isubset)
 
         # Separate tables provide for tighter fitting of thumbnails.
-        print >> os, '<center><table width="100%">'
-        print >> os, '<tr align=center>'
+        print('<center><table width="100%">', file=os)
+        print('<tr align=center>', file=os)
         for i in isubset:
-            print >> os, '<td>'
+            print('<td>', file=os)
             altname = 'alt="%s"' % i._title
 
-            print >> os, thumbImage(dstdir, i)
+            print(thumbImage(dstdir, i), file=os)
             if textfun:
-                print >> os, textfun(i)
+                print(textfun(i), file=os)
 
-            print >> os, "</td>"
+            print("</td>", file=os)
 
         for i in range( 0, cols - len( isubset ) ):
-            print >> os, "<td></td>"
+            print("<td></td>", file=os)
 
-        print >> os, "</tr>"
+        print("</tr>", file=os)
 
-        print >> os, "</table></center>"
+        print("</table></center>", file=os)
 
     return os.getvalue()
 
@@ -1765,22 +1762,20 @@ def table(dstdir, images, textfun=None, cols=4):
 #
 def twoColumns(dstdir, images):
 
-    os = StringIO.StringIO()
-    print >> os, '<table cols=2 width=\"100%\"><tr><td>'
-    print >> os, '<ul><font size=-2>'
+    os = io.StringIO()
+    print('<table cols=2 width=\"100%\"><tr><td>', file=os)
+    print('<ul><font size=-2>', file=os)
     for i in images[ :len(images)/2 ]:
-	 print >> os, '<li><a href=\"%s\">%s</a></li>' % \
-	     ( urlquote(rel(i._pagefn, dstdir)), i._title )
-    print >> os, '</font></ul>'
+        print('<li><a href=\"%s\">%s</a></li>' % (urlquote(rel(i._pagefn, dstdir)), i._title), file=os)
+    print('</font></ul>', file=os)
 
-    print >> os, '</td><td>'
+    print('</td><td>', file=os)
 
-    print >> os, '<ul><font size=-2>'
+    print('<ul><font size=-2>', file=os)
     for i in images[ len(images)/2: ]:
-	 print >> os, '<li><a href=\"%s\">%s</a></li>' % \
-	     ( urlquote(rel(i._pagefn, dstdir)), i._title )
-    print >> os, '</font></ul>'
-    print >> os, '</td></tr></table>'
+        print('<li><a href=\"%s\">%s</a></li>' % (urlquote(rel(i._pagefn, dstdir)), i._title), file=os)
+    print('</font></ul>', file=os)
+    print('</td></tr></table>', file=os)
 
     return os.getvalue()
 
@@ -1791,11 +1786,11 @@ def imagePile(dstdir, images):
     if len(images) == 0:
         return ""
 
-    os = StringIO.StringIO()
-    print >> os, '<center>'
+    os = io.StringIO()
+    print('<center>', file=os)
     for i in images:
-        print >> os, thumbImage(dstdir, i)
-    print >> os, "</center>"
+        print(thumbImage(dstdir, i), file=os)
+    print("</center>", file=os)
 
     return os.getvalue()
 
@@ -1877,29 +1872,29 @@ def textnav(dstdir, image, imglist, midtext="", middest=None, pcycling=0 ):
         prevfunc = prev
         nextfunc = next
 
-    os = StringIO.StringIO()
+    os = io.StringIO()
 
     pi = prevfunc(image, imglist)
     if pi:
-        print >> os, "<a href=%s>" % urlquote(rel(pi._pagefn, dstdir)),
-        print >> os, "<font size=\"-2\">prev</font></a>"
+        print("<a href=%s>" % urlquote(rel(pi._pagefn, dstdir)), end=' ', file=os)
+        print("<font size=\"-2\">prev</font></a>", file=os)
 
     if midtext != "":
-        print >> os, "[",
+        print("[", end=' ', file=os)
         if middest:
-            print >> os, "<a href=\"%s\"><font size=\"-2\">%s</font></a>" % \
-                 ( urlquote(middest), midtext ),
+            print("<a href=\"%s\"><font size=\"-2\">%s</font></a>" % \
+                 ( urlquote(middest), midtext ), end=' ', file=os)
         else:
-            print >> os, "<font size=\"-2\">" + midtext + "</font>",
-        print >> os, "]"
+            print("<font size=\"-2\">" + midtext + "</font>", end=' ', file=os)
+        print("]", file=os)
     else:
         if pi:
-            print >> os, "&nbsp;"
+            print("&nbsp;", file=os)
 
     ni = nextfunc(image, imglist)
     if ni:
-        print >> os, "<a href=%s>" % urlquote(rel(ni._pagefn, dstdir)),
-        print >> os, "<font size=\"-2\">next</font></a>"
+        print("<a href=%s>" % urlquote(rel(ni._pagefn, dstdir)), end=' ', file=os)
+        print("<font size=\"-2\">next</font></a>", file=os)
 
     return os.getvalue()
 
@@ -2487,7 +2482,7 @@ def main():
     elif len(args) == 1:
         opts.root = args[0]
     elif len(args) > 1:
-        print >> sys.stderr, "Error: can only specify one root."
+        print("Error: can only specify one root.", file=sys.stderr)
         sys.exit(1)
 
     #
@@ -2523,20 +2518,20 @@ def main():
     #
     # Validate options.
     #
-    if opts.quiet: print "====> validating options"
+    if opts.quiet: print("====> validating options")
 
     if opts.help_script:
-        print generateScriptHelp()
+        print(generateScriptHelp())
         sys.exit(1)
 
     if opts.pil:
         global PilImage
         try:
             import Image as PilImage
-        except ImportError, e:
+        except ImportError as e:
             try:
                 import PIL.Image as PilImage
-            except ImportError, e:
+            except ImportError as e:
                 raise SystemExit(\
                 "Error: you said to use PIL but PIL seems not to be installed.")
 
@@ -2544,7 +2539,7 @@ def main():
         opts.templates = os.path.expanduser( opts.templates )
 
     if ( opts.magick_path or opts.old_magick != None ) and opts.no_magick:
-        print >> sys.stderr, "Error: Ambiguous options, use Magick or not?"
+        print("Error: Ambiguous options, use Magick or not?", file=sys.stderr)
         sys.exit(1)
 
     if opts.old_magick == None:
@@ -2555,14 +2550,14 @@ def main():
         if opts.thumb_size <= 0:
             raise ValueError()
     except ValueError:
-        print >> sys.stderr, "Error: Illegal thumbnail size."
+        print("Error: Illegal thumbnail size.", file=sys.stderr)
         sys.exit(1)
 
     if opts.thumb_quality:
         try:
             opts.thumb_quality = int( opts.thumb_quality )
         except ValueError:
-            print >> sys.stderr, "Error: Illegal thumbnail quality."
+            print("Error: Illegal thumbnail quality.", file=sys.stderr)
             sys.exit(1)
 
     if opts.ignore_pattern:
@@ -2571,15 +2566,15 @@ def main():
 
     if opts.repn_affinity:
         res = []
-        for r in string.split( opts.repn_affinity, ',' ):
+        for r in str.split( opts.repn_affinity, ',' ):
             res.append( re.compile( r ) )
         opts.repn_affinity = res
     else:
         opts.repn_affinity = []
 
-    if len(filter(None, [opts.out_along, opts.out_subdirs,
-                         opts.out_onedir])) > 1:
-        print >> sys.stderr, "Error: Make up your mind, which outputs?"
+    if len([_f for _f in [opts.out_along, opts.out_subdirs,
+                         opts.out_onedir] if _f]) > 1:
+        print("Error: Make up your mind, which outputs?", file=sys.stderr)
         sys.exit(1)
 
     #
@@ -2604,22 +2599,21 @@ def main():
 
     opts.root = normpath( opts.root )
     if not exists( opts.root ) or not isdir( opts.root ):
-        print >> sys.stderr, "Error: root %s doesn't exist." % opts.root
+        print("Error: root %s doesn't exist." % opts.root, file=sys.stderr)
         sys.exit(1)
 
     if opts.magick_path:
         opts.magick_path = normpath( opts.magick_path )
         if not exists( opts.magick_path ) or \
            not isdir( opts.magick_path ):
-            print >> sys.stderr, \
-                  "Error: magick-path %s is invalid." % opts.magick_path
+            print("Error: magick-path %s is invalid." % opts.magick_path, file=sys.stderr)
             sys.exit(1)
 
     #
     # Find and process list of images, reading necessary information for each
     # image.
     #
-    if opts.quiet: print "====> gathering image list and attributes files"
+    if opts.quiet: print("====> gathering image list and attributes files")
 
     rootdir = Dir( "", None, opts.root )
 
@@ -2633,7 +2627,7 @@ def main():
     allimages = rootdir.getAllImages()
     alldirs = rootdir.getAllDirs()
     trackmap = computeTrackmap( allimages )
-    tracks = trackmap.keys()
+    tracks = list(trackmap.keys())
     tracks.sort()
     trackindex_fns = {}
     for t in tracks:
@@ -2690,16 +2684,16 @@ def main():
     # If asked to clean, clean and exit.
     #
     if opts.clean:
-        if opts.quiet: print "====> cleaning up generated files"
+        if opts.quiet: print("====> cleaning up generated files")
 
         clean( allimages, alldirs )
-        if opts.quiet: print "====> done."
+        if opts.quiet: print("====> done.")
         sys.exit(0)
 
     #
     # Read template files.
     #
-    if opts.quiet: print "====> templates input and compilation"
+    if opts.quiet: print("====> templates input and compilation")
 
     global templates
     templates = readTemplates()
@@ -2707,7 +2701,7 @@ def main():
     #
     # Thumbnail generation.
     #
-    if opts.quiet: print "====> thumbnail generation and sizes computation"
+    if opts.quiet: print("====> thumbnail generation and sizes computation")
 
     for img in allimages:
         img.generateThumbnail()
@@ -2715,7 +2709,7 @@ def main():
     #
     # Execute global rc file.
     #
-    if opts.quiet: print "====> executing global rc file"
+    if opts.quiet: print("====> executing global rc file")
     envir = {}
     envir.update( globals() )
     envir.update( locals() )
@@ -2724,13 +2718,13 @@ def main():
     #
     # Output directory indexes
     #
-    if opts.quiet: print "==> directory index generation"
+    if opts.quiet: print("==> directory index generation")
 
     def walkDirsForIndex(dir):
         # this does not do make the link for existing dirindex
         if dir.hasImages() == 1:
             envir['dir'] = dir
-            if opts.quiet: print "generating dirindex", dir._pagefn
+            if opts.quiet: print("generating dirindex", dir._pagefn)
             generatePage( dir._pagefn, 'dirindex', envir )
 
             lnfn = join(opts.root, dir._path, index_fn)
@@ -2743,34 +2737,34 @@ def main():
     #
     # Output track indexes HTML
     #
-    if opts.quiet: print "==> track index generation"
+    if opts.quiet: print("==> track index generation")
 
-    for track in trackmap.keys():
+    for track in list(trackmap.keys()):
         fn = trackindex_fns[track]
         envir['dir'] = rootdir
         envir['track'] = track
-        if opts.quiet: print "generating trackindex", fn
+        if opts.quiet: print("generating trackindex", fn)
         generatePage( fn, 'trackindex', envir )
 
     #
     # Output global index HTML file and summary text file.
     #
-    if opts.quiet: print "==> global index generation"
+    if opts.quiet: print("==> global index generation")
 
     envir['dir'] = rootdir
-    if opts.quiet: print "generating allindex", allindex_fn
+    if opts.quiet: print("generating allindex", allindex_fn)
     generatePage( allindex_fn, 'allindex', envir )
-    if opts.quiet: print "generating sortindex", sortindex_fn
+    if opts.quiet: print("generating sortindex", sortindex_fn)
     generatePage( sortindex_fn, 'sortindex', envir )
-    if opts.quiet: print "generating summary", allcidx_fn
+    if opts.quiet: print("generating summary", allcidx_fn)
     generateSummary( allcidx_fn, allimages )
-    if opts.quiet: print "generating css file", css_fn
+    if opts.quiet: print("generating css file", css_fn)
     generatePage( css_fn, 'css', envir )
 
     #
     # Output image HTML files
     #
-    if opts.quiet: print "====> image page generation"
+    if opts.quiet: print("====> image page generation")
 
     global walkDirsForImages
     def walkDirsForImages(dir):
@@ -2779,13 +2773,13 @@ def main():
         for img in dir._images:
             envir['dir'] = dir
             envir['image'] = img
-            if opts.quiet: print "generating image page", img._pagefn
+            if opts.quiet: print("generating image page", img._pagefn)
             generatePage( img._pagefn, 'image', envir )
 
     walkDirsForImages( rootdir )
 
     # signal the end
-    if opts.quiet: print "====> done."
+    if opts.quiet: print("====> done.")
 
 
 # Run main if loaded as a script

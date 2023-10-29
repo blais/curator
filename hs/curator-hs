@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Curator-HighSlide, a much improved and simplified version of curator, the static
 image gallery generator.
